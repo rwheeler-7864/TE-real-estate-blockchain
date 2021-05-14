@@ -9,6 +9,7 @@ contract Marketplace {
     uint public loanCount = 0;
     mapping(uint => LoanApplication) public loans;
 
+    // enum to control the states of applications rather than multiple booleans
     enum applicationStatus {
         applied,
         approved,
@@ -17,6 +18,8 @@ contract Marketplace {
     }
     applicationStatus constant default_value = applicationStatus.applied;
 
+
+    // TODO find a way for this to take a document - buffer maybe?
     struct PermitApplication {
         uint id;
         address owner;
@@ -58,6 +61,15 @@ contract Marketplace {
         permits[permitCount] = PermitApplication(permitCount, msg.sender, _propertyAddress, _document, _licenceNumber, _status);
 
         emit PermitCreated(permitCount, msg.sender, _propertyAddress, _document, _licenceNumber, _status);
+    }
+
+    function approvePermit(uint _id) public {
+        // fetch permit
+        PermitApplication memory _permit = permits[_id];
+        // fetch the owner
+        // validate
+        // approve permit
+        // trigger event
     }
 }
 

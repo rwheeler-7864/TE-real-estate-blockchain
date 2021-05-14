@@ -1,3 +1,5 @@
+const { assert } = require('chai');
+
 require('chai').use(require('chai-as-promised')).should();
 
 const Marketplace = artifacts.require('./Marketplace.sol');
@@ -45,8 +47,8 @@ contract('Marketplace', ([deployer, seller, authority, buyer, bank]) => {
       // Success
       // increases permit count and all data matches
       assert.equal(permitCount, 1);
-      console.log(result.logs)
       const event = result.logs[0].args
+
       assert.equal(event.id.toNumber(), permitCount.toNumber(), 'id is correct')
       assert.equal(event.owner, seller, 'owner is correct')
       assert.equal(event.propertyAddress, '123 Street, Melbourne, Victoria', 'property address is correct')
@@ -63,5 +65,15 @@ contract('Marketplace', ([deployer, seller, authority, buyer, bank]) => {
       // Failure - must be created with a status of Applied ONLY
       await marketplace.createPermit('aadasdasd', 'design.PDF', 'L1001', 2, { from: seller }).should.be.rejected;
     });
+
+    it('lists permits', async () => {
+        const permit = await marketplace.permits(permitCount);
+        assert.equal(permit.id.toNumber(), permitCount.toNumber(), 'id is correct')
+        assert.equal(permit.owner, seller, 'owner is correct')
+        assert.equal(permit.propertyAddress, '123 Street, Melbourne, Victoria', 'property address is correct')
+        assert.equal(permit.document, 'design.PDF', 'document is correct')
+        assert.equal(permit.licenceNumber, 'L1001', 'licenceNumber is correct')
+        assert.equal(permit.status, 0, 'status is correct')
+    })
   });
 });
