@@ -41,6 +41,12 @@ contract Marketplace {
         string licenceNumber,
         applicationStatus status
         );
+
+    event PermitStatus(
+        uint id,
+        address authBy,
+        applicationStatus status
+    );
         
     
 
@@ -56,6 +62,8 @@ contract Marketplace {
         require(bytes(_licenceNumber).length > 0);
         // status of a new application must be applied ONLY
         require(_status == applicationStatus.applied);
+        // only be created by a seller TODO find better implementation of this
+        require(msg.sender == 0x7e14E1b59aF858C2E366B1d902aBBB743275F694);
 
         permitCount++;
         permits[permitCount] = PermitApplication(permitCount, msg.sender, _propertyAddress, _document, _licenceNumber, _status);
@@ -63,13 +71,19 @@ contract Marketplace {
         emit PermitCreated(permitCount, msg.sender, _propertyAddress, _document, _licenceNumber, _status);
     }
 
-    function approvePermit(uint _id) public {
+    function updatePermit(uint _id, applicationStatus _status) public {
         // fetch permit
         PermitApplication memory _permit = permits[_id];
-        // fetch the owner
-        // validate
-        // approve permit
+        // validate permit exists
+        require(_permit.id > 0 && _permit.id <= permitCount);
+        // validate that the status is not the same
+        require(_permit.status != _status);
+        // only be updated by an authority TODO find better implementation of this
+        require(msg.sender == 0x2b0d61c05D8caFF492E1d6a6D3451437801D4b6B);
+        // update permit
+        _permit.status = _status;
         // trigger event
+        emit PermitStatus(_id, msg.sender, _permit.status);
     }
 }
 
