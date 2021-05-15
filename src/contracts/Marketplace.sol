@@ -9,6 +9,8 @@ contract Marketplace {
     uint public loanCount = 0;
     mapping(uint => LoanApplication) public loans;
 
+    // mapping(address => Account) public accounts;
+
     // enum to control the states of applications rather than multiple booleans
     enum applicationStatus {
         applied,
@@ -18,6 +20,18 @@ contract Marketplace {
     }
     applicationStatus constant default_value = applicationStatus.applied;
 
+    enum accountType {
+        deployer,
+        seller,
+        authority,
+        buyer,
+        bank
+    }
+
+    struct Account {
+        address accountAddress;
+        accountType account;
+    }
 
     // TODO find a way for this to take a document - buffer maybe?
     struct PermitApplication {
@@ -78,8 +92,14 @@ contract Marketplace {
         require(_permit.id > 0 && _permit.id <= permitCount);
         // validate that the status is not the same
         require(_permit.status != _status);
-        // only be updated by an authority TODO find better implementation of this
+
+        // TODO find better implementation of auth checking
+        // seller can not update their own permit
+        require(_permit.owner != msg.sender);
+        // only be updated by an authority 
         require(msg.sender == 0x2b0d61c05D8caFF492E1d6a6D3451437801D4b6B);
+
+
         // update permit
         _permit.status = _status;
         // trigger event

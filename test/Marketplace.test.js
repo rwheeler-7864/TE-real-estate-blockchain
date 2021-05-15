@@ -130,8 +130,11 @@ contract('Marketplace', ([deployer, seller, authority, buyer, bank]) => {
       // Failure - must change the status
       await marketplace.updatePermit(permitCount, 0, { from: authority }).should.be.rejected;
 
-      // Failure - must be from an auth
+      // Failure - must not be updated by seller
       await marketplace.updatePermit(permitCount, 0, { from: seller }).should.be.rejected;
+
+      // Failure - must be from an auth
+      await marketplace.updatePermit(permitCount, 0, { from: buyer }).should.be.rejected;
 
     })
   });
