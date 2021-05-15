@@ -13,7 +13,7 @@ Base code created using [Create React App.](https://create-react-app.dev/docs/ad
 3. Download and run [Ganache.](https://www.trufflesuite.com/ganache)
 2. Install [Metamask](https://metamask.io/download.html) extension. 
 3. [Add accounts](https://youtu.be/VH9Q2lf2mNo?t=5222) from Ganache to Metamask.
-4. Create test network 7545 [](assets/metamask-network.png)
+4. Create test network 7545 ![metamask-network](assets/metamask-network.png)
 4. Create a new workspace. Name it **marketplace.**
 5. Press **Add Project** and select the `truffle-config.js` file, then **save workspace.**
 6. 
