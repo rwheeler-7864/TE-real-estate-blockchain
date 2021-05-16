@@ -19,6 +19,7 @@ contract('Marketplace', ([deployer, seller, authority, buyer, bank]) => {
   before(async () => {
     marketplace = await Marketplace.deployed();
   });
+  
 
   describe('deployment', async () => {
     it('deploys successfully', async () => {
