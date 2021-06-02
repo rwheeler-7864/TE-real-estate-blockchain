@@ -58,8 +58,8 @@ contract Marketplace {
 
     event PermitStatus(
         uint id,
-        address authBy,
-        applicationStatus status
+        applicationStatus status,
+        address authBy
     );
         
     
@@ -85,13 +85,20 @@ contract Marketplace {
         emit PermitCreated(permitCount, msg.sender, _propertyAddress, _document, _licenceNumber, _status);
     }
 
+    /**
+    * Changes the permits status
+    * @param _id permit ID
+    * @param _status status that is being applied to the permit
+     */
     function updatePermit(uint _id, applicationStatus _status) public {
         // fetch permit
         PermitApplication memory _permit = permits[_id];
         // validate permit exists
         require(_permit.id > 0 && _permit.id <= permitCount);
-        // validate that the status is not the same
-        require(_permit.status != _status);
+        // validate that the status is not the same - NOT SURE THIS WORKS CORRECTLY
+        require(_status != _permit.status);
+        // validate that it is not being updated back to applied
+        require(_status != applicationStatus.applied);
 
         // TODO find better implementation of auth checking
         // seller can not update their own permit
@@ -102,8 +109,9 @@ contract Marketplace {
 
         // update permit
         _permit.status = _status;
+        permits[_id] = _permit;
         // trigger event
-        emit PermitStatus(_id, msg.sender, _permit.status);
+        emit PermitStatus(_id, _permit.status, msg.sender);
     }
 }
 
