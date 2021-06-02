@@ -1,27 +1,20 @@
 import { FormikValues } from 'formik';
 import React, { Component } from 'react';
 import { Button, ListGroup, ListGroupItem, Table } from 'react-bootstrap';
-import Web3 from 'web3';
 import FormCard from '../components/FormCard';
 import PermitForm from '../components/forms/PermitForm';
+import { applicationStatus, requestType } from '../utils/enums';
 // import applicationStatus from '../App';
 
 interface Props {
   marketplaceAddress: string;
   userAddress: string;
   permits: any[];
-  cb: (data: any, requestType: string) => void;
+  cb: (requestType: requestType, data: any) => void;
 }
 
 interface State {
   formValues: FormikValues;
-}
-
-enum applicationStatus {
-  applied = 0,
-  approved = 1,
-  denied = 2,
-  purchased = 3,
 }
 
 export default class Main extends Component<Props, State> {
@@ -38,7 +31,7 @@ export default class Main extends Component<Props, State> {
 
   formSubmit(data: FormikValues) {
     console.log('formValues in Main', data);
-    this.props.cb(data, 'create');
+    this.props.cb(requestType.create, data);
   }
 
   approvePermit(id: number) {
@@ -46,8 +39,7 @@ export default class Main extends Component<Props, State> {
       id: id,
       status: applicationStatus.approved,
     };
-    console.log('approve in Main', data);
-    // this.props.cb(data, 'update');
+    this.props.cb(requestType.update, data);
   }
 
   render() {
@@ -58,7 +50,9 @@ export default class Main extends Component<Props, State> {
             Marketplace address: {this.props.marketplaceAddress}
           </ListGroupItem>
           <ListGroupItem>User Address: {this.props.userAddress}</ListGroupItem>
-          <ListGroupItem>Permit Count: {this.props.permits.length}</ListGroupItem>
+          <ListGroupItem>
+            Permit Count: {this.props.permits.length}
+          </ListGroupItem>
         </ListGroup>
         <Table>
           <thead>
@@ -81,12 +75,11 @@ export default class Main extends Component<Props, State> {
                       <td>{permit.propertyAddress}</td>
                       <td>{permit.document}</td>
                       <td>{permit.licenceNumber}</td>
-                      <td>{this.getStatus(permit.status)}</td>
+                      <td>{this.getStatus(permit.status) + permit.status}</td>
                       <td>
-                        {/* <Button onClick={() => this.approvePermit(parseInt(permit.id))}>
+                        <Button onClick={() => this.approvePermit(parseInt(permit.id))}>
                           Approve
-                        </Button> */}
-                        TODO FIX BUTTON
+                        </Button>
                       </td>
                     </tr>
                   );

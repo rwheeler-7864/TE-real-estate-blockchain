@@ -110,6 +110,15 @@ contract('Marketplace', ([deployer, seller, authority, buyer, bank]) => {
     });
 
     // prettier-ignore
+    it('lists permits and confirms correct values', async () => {
+      const permit = await marketplace.permits(permitCount);
+
+      // confirm that data in permit is same as data in event
+      assert.equal(permit.id.toNumber(), permitCount.toNumber(), 'id is correct');
+      assert.equal(permit.status, 1, 'status is correct');
+    });
+
+    // prettier-ignore
     it('denies permit from authority', async () => {
       result = await marketplace.updatePermit(permitCount, 2, { from: authority });
       // log event
@@ -132,10 +141,10 @@ contract('Marketplace', ([deployer, seller, authority, buyer, bank]) => {
       await marketplace.updatePermit(permitCount, 0, { from: authority }).should.be.rejected;
 
       // Failure - must not be updated by seller
-      await marketplace.updatePermit(permitCount, 0, { from: seller }).should.be.rejected;
+      await marketplace.updatePermit(permitCount, 1, { from: seller }).should.be.rejected;
 
       // Failure - must be from an auth
-      await marketplace.updatePermit(permitCount, 0, { from: buyer }).should.be.rejected;
+      await marketplace.updatePermit(permitCount, 1, { from: buyer }).should.be.rejected;
 
     })
   });
