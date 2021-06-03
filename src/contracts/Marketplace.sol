@@ -9,6 +9,8 @@ contract Marketplace {
     uint public loanCount = 0;
     mapping(uint => LoanApplication) public loans;
 
+    // TODO - create the banking side of contracts - loanApplications etc
+
     // mapping(address => Account) public accounts;
 
     // enum to control the states of applications rather than multiple booleans
@@ -100,7 +102,7 @@ contract Marketplace {
         // validate that it is not being updated back to applied
         require(_status != applicationStatus.applied);
 
-        // TODO find better implementation of auth checking
+        // TODO find better implementation of auth checking - look into proof of authority if we can
         // seller can not update their own permit
         require(_permit.owner != msg.sender);
         // only be updated by an authority 

@@ -1,6 +1,7 @@
 import { FormikValues } from 'formik';
 import React, { Component } from 'react';
 import { Button, ListGroup, ListGroupItem, Table } from 'react-bootstrap';
+import { Authority, Seller } from 'utils/addresses';
 import FormCard from '../components/FormCard';
 import PermitForm from '../components/forms/PermitForm';
 import { applicationStatus, requestType } from '../utils/enums';
@@ -34,15 +35,50 @@ export default class Main extends Component<Props, State> {
     this.props.cb(requestType.create, data);
   }
 
-  approvePermit(id: number) {
+  updatePermit(id: number, status: applicationStatus) {
     const data: any = {
       id: id,
-      status: applicationStatus.approved,
+      status: status,
     };
     this.props.cb(requestType.update, data);
   }
 
   render() {
+    let userAddress = this.props.userAddress;
+
+    const permitApplication = (
+      <FormCard
+        title={'Permit Application'}
+        form={<PermitForm cb={(data: FormikValues) => this.formSubmit(data)} />}
+      />
+    );
+
+    const actionButtons = (permit: any) => {
+      // TODO fix conditional rendering here - not rerendering when changing accounts
+      if (userAddress === Authority) {
+        return (
+          <div>
+            <Button
+              onClick={() =>
+                this.updatePermit(
+                  parseInt(permit.id),
+                  applicationStatus.approved
+                )
+              }
+            >
+              Approve
+            </Button>
+            <Button
+              onClick={() =>
+                this.updatePermit(parseInt(permit.id), applicationStatus.denied)
+              }
+            >
+              Deny
+            </Button>
+          </div>
+        );
+      }
+    };
     return (
       <div>
         <ListGroup>
@@ -75,24 +111,15 @@ export default class Main extends Component<Props, State> {
                       <td>{permit.propertyAddress}</td>
                       <td>{permit.document}</td>
                       <td>{permit.licenceNumber}</td>
-                      <td>{this.getStatus(permit.status) + permit.status}</td>
-                      <td>
-                        <Button onClick={() => this.approvePermit(parseInt(permit.id))}>
-                          Approve
-                        </Button>
-                      </td>
+                      <td>{this.getStatus(permit.status)}</td>
+                      <td>{actionButtons(permit)}</td>
                     </tr>
                   );
                 })
               : ''}
           </thead>
         </Table>
-        <FormCard
-          title={'Permit Application'}
-          form={
-            <PermitForm cb={(data: FormikValues) => this.formSubmit(data)} />
-          }
-        />
+        {permitApplication}
       </div>
     );
   }

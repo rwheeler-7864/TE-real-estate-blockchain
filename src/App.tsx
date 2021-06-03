@@ -8,6 +8,7 @@ import Main from './pages/Main';
 import { applicationStatus, requestType } from './utils/enums';
 import LoadSpinner from './components/LoadSpinner';
 import { FormikValues } from 'formik';
+import { Authority, Seller } from 'utils/addresses';
 const Marketplace = require('./abis/Marketplace.json');
 
 interface Permit {
@@ -35,15 +36,15 @@ declare let window: any;
 
 // https://stackoverflow.com/questions/2010892/storing-objects-in-html5-localstorage
 // allow for storing objects in local storage
-Storage.prototype.setObject = function (key: string, value: {}) {
-  this.setItem(key, JSON.stringify(value));
-};
+// Storage.prototype.setObject = function (key: string, value: {}) {
+//   this.setItem(key, JSON.stringify(value));
+// };
 
-// get object from local storage
-Storage.prototype.getObject = function (key: string) {
-  let value = this.getItem(key);
-  return value && JSON.parse(value);
-};
+// // get object from local storage
+// Storage.prototype.getObject = function (key: string) {
+//   let value = this.getItem(key);
+//   return value && JSON.parse(value);
+// };
 
 export default class App extends Component<Props, State> {
   constructor(props: Props) {
@@ -57,8 +58,9 @@ export default class App extends Component<Props, State> {
       marketplaceAddress: '',
     };
   }
+
   /**
-   * Loads web3 to allow for ethereum in browser
+   * Loads web3 to allow for ethereum in browser - adds into state
    */
   async loadWeb3() {
     if (window.ethereum) {
@@ -80,24 +82,22 @@ export default class App extends Component<Props, State> {
    * loads blockchain marketplace from Ganache and puts it into state
    */
   async loadBlockchainData() {
-    const web3 = window.web3;
-
-    // set current user account into state
-    const accounts = await web3.eth.getAccounts();
-    this.setState({ account: accounts[0] });
-
+    this.getAccount();
     // load the marketplace into state
-    const networkId = await web3.eth.net.getId();
+    const networkId = await window.web3.eth.net.getId();
     const networkData = Marketplace.networks[networkId];
     // check user is on the correct eth network otherwise alert
     if (networkData) {
       const abi = Marketplace.abi;
       // https://web3js.readthedocs.io/en/v1.3.4/web3-eth-contract.html
-      const marketplace = new web3.eth.Contract(abi, networkData.address);
+      const marketplace = new window.web3.eth.Contract(
+        abi,
+        networkData.address
+      );
       // get permit count to perform loop - no .length in Solidity
       const permitCount = await marketplace.methods.permitCount().call();
       // loop through array of permits in marketplace, add into state
-      this.updatePermitState(permitCount, marketplace);
+      this.getPermits(permitCount, marketplace);
       this.setState({
         marketplace,
         permitCount: permitCount.toString(),
@@ -109,34 +109,25 @@ export default class App extends Component<Props, State> {
     }
   }
 
-  // trying this to fix issue
-  async updatePermitState(permitCount: number, marketplace: any) {
+  async getAccount() {
+    // set current user account into state
+    const accounts = await window.web3.eth.getAccounts();
+    this.setState({ account: accounts[0] });
+
+    // https://ethereum.stackexchange.com/questions/42768/how-can-i-detect-change-in-account-in-metamask
+    // calls twice?
+    window.ethereum.on('accountsChanged', (accounts: any) => {
+      this.setState({ account: accounts[0] });
+    });
+  }
+
+  async getPermits(permitCount: number, marketplace: any) {
+    this.setState({ permits: [] });
     for (let i = 1; i <= permitCount; i++) {
       const permit = await marketplace.methods.permits(i).call();
       this.setState({ permits: [...this.state.permits, permit] });
     }
-    console.log('permits', this.state.permits);
-    
   }
-
-  // createPermit(data: FormikValues) {
-  //   this.setState({ loading: true });
-  //   this.state.marketplace.methods
-  //     .createPermit(data.propertyAddress, data.document, data.licenceNumber, 0)
-  //     .send({ from: this.state.account })
-      // .on('transactionHash', function () {
-      //   console.log('Hash');
-      // })
-      // .on('receipt', function () {
-      //   console.log('Receipt');
-      // })
-      // .on('confirmation', function () {
-      //   console.log('Confirmed');
-      // })
-      // .on('error', async function () {
-      //   console.log('Error');
-      // });
-  // }
 
   /**
    * Creates a sell permit and puts it in the marketplace
@@ -147,16 +138,8 @@ export default class App extends Component<Props, State> {
     this.state.marketplace.methods
       .createPermit(data.propertyAddress, data.document, data.licenceNumber, 0)
       .send({ from: this.state.account })
-      .on('transactionHash', function () {
-        console.log('Hash');
-      })
-      .on('confirmation', function () {
-        console.log('Confirmed');
-      })
       .on('receipt', (receipt: any) => {
-        console.log('Receipt');
-        localStorage.setObject(receipt);
-        window.location.reload();
+        this.loadBlockchainData();
         this.setState({ loading: false });
       })
       .on('error', async (error: any) => {
@@ -175,17 +158,9 @@ export default class App extends Component<Props, State> {
     this.state.marketplace.methods
       .updatePermit(id, status)
       .send({ from: this.state.account })
-      .on('transactionHash', function () {
-        console.log('Hash');
-      })
-      .on('confirmation', function () {
-        console.log('Confirmed');
-      })
       .on('receipt', (receipt: any) => {
+        this.loadBlockchainData();
         this.setState({ loading: false });
-        console.log(receipt);
-        this.updatePermitState(this.state.permitCount, this.state.marketplace);
-        // window.location.reload(true);
       })
       .on('error', async (error: any) => {
         console.log(error);
@@ -193,9 +168,8 @@ export default class App extends Component<Props, State> {
       });
   }
 
-
   /**
-   * Funciton that directs the call back to the appropriate function based on the request type
+   * Function that directs the call back to the appropriate function based on the request type
    * @param requestType Type of request - from Request Type enum
    * @param data any data being passed from the components
    */
@@ -206,19 +180,32 @@ export default class App extends Component<Props, State> {
         this.createPermit(data);
         break;
       case 1:
-        console.log('update permit cb', data.id, data.status);
         this.updatePermit(data.id, data.status);
         break;
-
       default:
         break;
     }
   }
 
+  // TODO this bugs out on default case when switching accounts
+  getAccountType() {
+    switch (this.state.account) {
+      case Seller:
+        return "Seller"
+    
+      case Authority:
+        return "Authority"
+    
+      default:
+        return "Not logged in"
+    }
+  }
+
   render() {
+    
     return (
       <div>
-        <NavigationBar account={this.state.account} />
+        <NavigationBar account={this.getAccountType()} />
         <Container>
           {this.state.loading ? (
             <LoadSpinner />
