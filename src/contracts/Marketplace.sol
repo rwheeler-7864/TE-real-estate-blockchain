@@ -2,6 +2,8 @@ pragma solidity >0.5.0;
 
 contract Marketplace {
     string public name;
+    // string public Authority;
+    // string public Seller;
 
     uint public permitCount = 0;
     mapping(uint => PermitApplication) public permits;
@@ -45,10 +47,6 @@ contract Marketplace {
         applicationStatus status; 
     }
 
-    struct LoanApplication {
-        uint id;
-    }
-
     event PermitCreated(
         uint id,
         address owner,
@@ -64,7 +62,47 @@ contract Marketplace {
         address authBy
     );
         
+        // original struct - too many variables for this version of truffle
+    // struct LoanApplication {
+    //     uint id;
+    //     address owner;
+    //     string fullName;
+    //     uint256 birthdate;
+    //     string currentAddress;
+    //     string contactNumber;
+    //     string employerName;
+    //     string annualIncome;
+    //     string applicationProperyAddress;
+    //     string loanAmount;
+    //     applicationStatus status;
+    // }
+    struct LoanApplication {
+        uint id;
+        address owner;
+        string fullName;
+        string annualIncome;
+        string applicationPropertyAddress;
+        string loanAmount;
+        applicationStatus status;
+    }
+
+
+    event LoanCreated(
+        uint id,
+        address owner,
+        string fullName,
+        string annualIncome,
+        string applicationPropertyAddress,
+        string loanAmount,
+        applicationStatus status
+    );
     
+    event LoanStatus(
+        uint id,
+        applicationStatus status,
+        address authBy
+    );
+
 
     constructor() public {
         name = "SICI Real Estate Marketplace";
@@ -79,7 +117,7 @@ contract Marketplace {
         // status of a new application must be applied ONLY
         require(_status == applicationStatus.applied);
         // only be created by a seller TODO find better implementation of this
-        require(msg.sender == 0x7e14E1b59aF858C2E366B1d902aBBB743275F694);
+        require(msg.sender == 0x2E11fF485F0B543222e5cb392395f3ec748E37B8);
 
         permitCount++;
         permits[permitCount] = PermitApplication(permitCount, msg.sender, _propertyAddress, _document, _licenceNumber, _status);
@@ -106,7 +144,7 @@ contract Marketplace {
         // seller can not update their own permit
         require(_permit.owner != msg.sender);
         // only be updated by an authority 
-        require(msg.sender == 0x2b0d61c05D8caFF492E1d6a6D3451437801D4b6B);
+        require(msg.sender == 0x386c0b9C66a334cEedf0059b1B4E44E43C2821a6);
 
 
         // update permit
@@ -115,5 +153,41 @@ contract Marketplace {
         // trigger event
         emit PermitStatus(_id, _permit.status, msg.sender);
     }
-}
 
+    function createLoanApplication(
+        string memory _fullName,
+        string memory _applicationProperyAddress, 
+        string memory _annualIncome,
+        string memory _loanAmount, 
+        applicationStatus _status) public {
+            
+            require(bytes(_applicationProperyAddress).length > 0);
+            require(bytes(_fullName).length > 0);
+            require(bytes(_loanAmount).length > 0);
+            require(bytes(_annualIncome).length > 0);
+            require(_status == applicationStatus.applied);
+
+            loanCount++;
+
+            loans[loanCount] = LoanApplication(loanCount, msg.sender, _fullName, _annualIncome, _applicationProperyAddress, _loanAmount, _status);
+            emit LoanCreated(loanCount, msg.sender, _fullName, _annualIncome, _applicationProperyAddress, _loanAmount, _status);
+    }
+
+    function updateLoanApplication(uint _id, applicationStatus _status) public {
+        LoanApplication memory _loan = loans[_id];
+        
+        // validate permit exists
+        require(_loan.id > 0 && _loan.id <= loanCount);
+        // validate that the status is not the same
+        require(_loan.status != _status);
+        require(_status != applicationStatus.applied);
+
+        require(_loan.owner != msg.sender);
+        require(msg.sender == 0x2E11fF485F0B543222e5cb392395f3ec748E37B8);
+        
+        _loan.status = _status;
+        loans[_id] = _loan;
+        emit LoanStatus(_id, _status, msg.sender);
+    }
+
+}

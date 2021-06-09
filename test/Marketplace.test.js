@@ -55,9 +55,6 @@ contract('Marketplace', ([deployer, seller, authority, buyer, bank]) => {
 
     // prettier-ignore
     it('creates a permit application from a seller', async () => {
-      // Success
-      // check permit count has increased
-      assert.equal(permitCount, 1);
       // log event
       const event = result.logs[0].args;
 
@@ -146,6 +143,114 @@ contract('Marketplace', ([deployer, seller, authority, buyer, bank]) => {
       // Failure - must be from an auth
       await marketplace.updatePermit(permitCount, 1, { from: buyer }).should.be.rejected;
 
+    })
+  });
+
+  describe('loanApplications', async () => {
+    let result, loanCount;
+
+    before(async () => {
+      // create a test permit
+      result = await marketplace.createLoanApplication(
+        'John Doe',
+        '123 Street, Melbourne, Victoria',
+        '$100,000',
+        '$350,000',
+        0,
+        { from: buyer }
+      );
+      loanCount = await marketplace.loanCount();
+    });
+
+    it('creates a loan application from a seller', async () => {
+      // log event
+      const event = result.logs[0].args;
+
+      // check data matches
+      assert.equal(event.id.toNumber(), loanCount.toNumber(), 'id is correct');
+      assert.equal(event.applicationPropertyAddress, '123 Street, Melbourne, Victoria', 'property address is correct');
+      assert.equal(event.fullName, 'John Doe', 'Name is correct');
+      assert.equal(event.annualIncome, '$100,000', 'Annual Income is right');
+      assert.equal(event.loanAmount, '$350,000', 'Loan amount is correct');
+      assert.equal(event.status.toNumber(), 0, 'status is correct');
+
+      // Failure - must have an address
+      await marketplace.createLoanApplication( 'John Doe', '', '$100,000', '$350,000', 0, { from: buyer }).should.be.rejected;
+
+      // Failure - must have a name
+      await marketplace.createLoanApplication( '', '123 Street, Melbourne, Victoria', '$100,000', '$350,000', 0, { from: buyer }).should.be.rejected;
+
+      // Failure - must have a annual income
+      await marketplace.createLoanApplication( 'John Doe', '123 Street, Melbourne, Victoria', '', '$350,000', 0, { from: buyer }).should.be.rejected;
+      
+      // Failure - must have a loan amount 
+      await marketplace.createLoanApplication( 'John Doe', '123 Street, Melbourne, Victoria', '$100,000', '', 0, { from: buyer }).should.be.rejected;
+
+      // Failure - must be created with a status of Applied only
+      await marketplace.createLoanApplication( 'John Doe', '123 Street, Melbourne, Victoria', '$100,000', '$350,000', 2, { from: buyer }).should.be.rejected;
+      
+      // Failure - must be created by a BUYER only
+      await marketplace.createLoanApplication( 'John Doe', '123 Street, Melbourne, Victoria', '$100,000', '', 0, { from: seller }).should.be.rejected;
+    });
+
+    // prettier-ignore
+    it('lists loans and confirms correct values', async () => {
+      const loan = await marketplace.loans(loanCount);
+      assert.equal(loan.id.toNumber(), loanCount.toNumber(), 'id is correct');
+      assert.equal(loan.owner, buyer, 'owner is correct');
+      assert.equal(loan.applicationPropertyAddress, '123 Street, Melbourne, Victoria', 'property address is correct');
+      assert.equal(loan.fullName, 'John Doe', 'Full name is correct');
+      assert.equal(loan.annualIncome, '$100,000', 'Annual Income correct');
+      assert.equal(loan.loanAmount, '$350,000', 'Loan Amount correct');
+      assert.equal(loan.status, 0, 'status is correct');
+    });
+    
+    // prettier-ignore
+    it('approves loan application from authority', async () => {
+      result = await marketplace.updateLoanApplication(loanCount, 1, { from: authority });
+      // log event
+      const event = result.logs[0].args;
+
+      assert.equal(event.id.toNumber(), loanCount.toNumber(), 'id is correct');
+      assert.equal(event.authBy, authority, 'approved by authority');
+      assert.equal(event.status.toNumber(), 1, 'Status has been changed to approved');
+    });
+    // prettier-ignore
+    it('lists loan application and confirms correct values', async () => {
+      const loan = await marketplace.loans(loanCount);
+
+      // confirm that data in permit is same as data in event
+      assert.equal(loan.id.toNumber(), loanCount.toNumber(), 'id is correct');
+      assert.equal(loan.status.toNumber(), 1, 'status is correct');
+    });
+
+    // prettier-ignore
+    it('denies loan application from authority', async () => {
+      result = await marketplace.updateLoanApplication(loanCount, 2, { from: authority });
+      // log event
+      const event = result.logs[0].args;
+
+      assert.equal(event.id.toNumber(), loanCount.toNumber(), 'id is correct');
+      assert.equal(event.authBy, authority, 'denied by authority');
+      assert.equal(event.status, 2, 'Status has been changed to denied');
+    });
+
+    // prettier-ignore 
+    it('fails loan application update', async () => {
+      // Failure - must have an ID
+      await marketplace.updateLoanApplication('', 1, { from: authority }).should.be.rejected;
+
+      // Failure - must be an ID that exists
+      await marketplace.updateLoanApplication(19211, 1, { from: authority }).should.be.rejected;
+
+      // Failure - must change the status
+      await marketplace.updateLoanApplication(loanCount, 0, { from: authority }).should.be.rejected;
+
+      // Failure - must not be updated by seller
+      // await marketplace.updateLoanApplication(loanCount, 1, { from: seller }).should.be.rejected;
+
+      // Failure - must be from an auth
+      await marketplace.updateLoanApplication(loanCount, 1, { from: buyer }).should.be.rejected;
     })
   });
 });
