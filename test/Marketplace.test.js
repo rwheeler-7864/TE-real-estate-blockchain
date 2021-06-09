@@ -52,9 +52,6 @@ contract('Marketplace', ([deployer, seller, authority, buyer, bank]) => {
 
     // prettier-ignore
     it('creates a permit application from a seller', async () => {
-      // Success
-      // check permit count has increased
-      assert.equal(permitCount, 1);
       // log event
       const event = result.logs[0].args;
 
