@@ -2,6 +2,7 @@ pragma solidity >0.5.0;
 
 contract Marketplace {
   string public name;
+  address public marketplace;
   address public seller;
   address public authority;
   address public buyer;
@@ -75,12 +76,20 @@ contract Marketplace {
     name = 'SICI Real Estate Marketplace';
 
     // Justins addresses
+    marketplace = 0x9197D2fB0F4Aa66173604bdEA2e2655b988bcAff;
     seller = 0x7e14E1b59aF858C2E366B1d902aBBB743275F694;
     authority = 0x2b0d61c05D8caFF492E1d6a6D3451437801D4b6B;
     buyer = 0x457e9ddFf1409434D618461a2f5F15586FB0eb6C;
     bank = 0xFD55579F56578959D269f87D9eAB9A97A09877f8;
 
     // Sids addresses
+    // seller = <ADD>;
+    // authority = <ADD>;
+    // buyer = <ADD>;
+    // bank = <ADD>;
+
+    // Add your addresses here
+    // marketplace = <ADD>;
     // seller = <ADD>;
     // authority = <ADD>;
     // buyer = <ADD>;
