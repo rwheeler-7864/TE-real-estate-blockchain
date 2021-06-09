@@ -4,7 +4,7 @@ import { Container, Spinner, ThemeProvider } from 'react-bootstrap';
 import Web3 from 'web3';
 import Footer from './components/Footer';
 import NavigationBar from './components/NavigationBar';
-import Main from './pages/Main';
+import Main from './pages/main';
 import { applicationStatus, requestType } from './utils/enums';
 import LoadSpinner from './components/LoadSpinner';
 import { FormikValues } from 'formik';

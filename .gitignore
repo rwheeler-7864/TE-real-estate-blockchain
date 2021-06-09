@@ -1,5 +1,8 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
+# ignore abi's as they are generated when compiled
+/src/abis
+
 # dependencies
 /node_modules
 /.pnp
