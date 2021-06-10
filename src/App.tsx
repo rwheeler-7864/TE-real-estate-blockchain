@@ -5,12 +5,21 @@ import Web3 from 'web3';
 import NavigationBar from './components/NavigationBar';
 import { applicationStatus, requestType } from './utils/enums';
 import { FormikValues } from 'formik';
-import { Authority, Seller } from 'utils/addresses';
-import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
+import { Authority, Bank, Seller } from 'utils/addresses';
+import {
+  BrowserRouter as Router,
+  Redirect,
+  Route,
+  RouteProps,
+  Switch,
+} from 'react-router-dom';
 import HomePage from 'pages/home';
 import PermitPage from 'pages/permit';
 import LoanPage from './pages/loans';
 import { Loan, Permit } from 'utils/types';
+import LoadSpinner from 'components/LoadSpinner';
+import AuthorityPage from 'pages/authority';
+import BankPage from 'pages/bank';
 const Marketplace = require('./abis/Marketplace.json');
 
 interface Props {}
@@ -26,20 +35,14 @@ interface State {
   marketplaceAddress: string;
 }
 
+interface PrivateRouteProps extends RouteProps {
+  component: any;
+  isAuthority: boolean;
+  isBank: boolean;
+}
+
 // ignoring types - TODO fix this later
 declare let window: any;
-
-// https://stackoverflow.com/questions/2010892/storing-objects-in-html5-localstorage
-// allow for storing objects in local storage
-// Storage.prototype.setObject = function (key: string, value: {}) {
-//   this.setItem(key, JSON.stringify(value));
-// };
-
-// // get object from local storage
-// Storage.prototype.getObject = function (key: string) {
-//   let value = this.getItem(key);
-//   return value && JSON.parse(value);
-// };
 
 export default class App extends Component<Props, State> {
   constructor(props: Props) {
@@ -262,10 +265,12 @@ export default class App extends Component<Props, State> {
 
   render() {
     return (
-      <div>
-        <Router>
-          <NavigationBar account={this.getAccountType()} />
-          <Container>
+      <Router>
+        <NavigationBar account={this.getAccountType()} />
+        <Container>
+          {this.state.loading ? (
+            <LoadSpinner />
+          ) : (
             <Switch>
               <Route exact path='/'>
                 <HomePage permits={this.state.permits} />
@@ -288,56 +293,34 @@ export default class App extends Component<Props, State> {
                   }
                 />
               </Route>
-              {/* {routes.map((route, index) => {
-                return (
-                  <Route
-                    key={index}
-                    path={route.path}
-                    exact={route.exact}
-                    render={(props: RouteComponentProps<any>) => (
-                      <route.component {...props} {...route.props} />
-                    )}
+              {this.state.account === Authority ? (
+                <Route exact path='/authority'>
+                  <AuthorityPage
+                    permits={this.state.permits}
+                    user={this.state.account}
+                    cb={(requestType: requestType, data: any) =>
+                      this.runCallBack(requestType, data)
+                    }
                   />
-                );
-              })} */}
+                </Route>
+              ) : null}
+              {this.state.account === Bank ? (
+                <Route exact path='/bank'>
+                  <BankPage
+                    loans={this.state.loans}
+                    user={this.state.account}
+                    cb={(requestType: requestType, data: any) =>
+                      this.runCallBack(requestType, data)
+                    }
+                  />
+                </Route>
+              ) : null}
+
+              <Redirect to={'/'} />
             </Switch>
-            {/* <Main
-              cb={(requestType: requestType, data: any) =>
-                this.runCallBack(requestType, data)
-              }
-              userAddress={this.state.account}
-              marketplaceAddress={this.state.marketplaceAddress}
-              permits={this.state.permits}
-            /> */}
-          </Container>
-        </Router>
-        {/* 
-        <Container>
-          {this.state.loading ? (
-            <LoadSpinner />
-          ) : (
-            <div>
-              <Main
-                cb={(requestType: requestType, data: any) =>
-                  this.runCallBack(requestType, data)
-                }
-                userAddress={this.state.account}
-                marketplaceAddress={this.state.marketplaceAddress}
-                permits={this.state.permits}
-              />
-              <Loan
-                cb={(requestType: requestType, data: any) =>
-                  this.runCallBack(requestType, data)
-                }
-                userAddress={this.state.account}
-                marketplaceAddress={this.state.marketplaceAddress}
-                loans={this.state.loans}
-              />
-            </div>
           )}
         </Container>
-        <Footer /> */}
-      </div>
+      </Router>
     );
   }
 }

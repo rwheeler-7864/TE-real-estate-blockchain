@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { Navbar, Nav, NavDropdown } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
+import { Authority, Bank } from 'utils/addresses';
 
 interface Props {
   account: string;
@@ -25,6 +26,17 @@ export default class NavigationBar extends Component<Props, State> {
             <Nav.Link href='/loan'>Loan Applications</Nav.Link>
             <Nav.Link href='/authority'>Authority Portal</Nav.Link>
             <Nav.Link href='/bank'>Bank Portal</Nav.Link>
+            {/* // TODO fix these conditional renders */}
+            {/* {this.props.account === Authority ? (
+              <Nav.Link href='/authority'>Authority Portal</Nav.Link>
+            ) : (
+              ''
+            )}
+            {this.props.account === Bank ? (
+              <Nav.Link href='/bank'>Bank Portal</Nav.Link>
+            ) : (
+              ''
+            )} */}
           </Nav>
           <Nav>
             <Nav.Link href='#user'>{this.props.account}</Nav.Link>

@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { applicationStatus, requestType } from 'utils/enums';
-import { Jumbotron, Table } from 'react-bootstrap';
-import { Seller } from 'utils/addresses';
+import { Button, Jumbotron, Table } from 'react-bootstrap';
+import { Authority, Seller } from 'utils/addresses';
 import FormCard from 'components/FormCard';
 import PermitForm from 'components/forms/PermitForm';
 import { FormikValues } from 'formik';
@@ -28,7 +28,7 @@ interface Props {
 
 interface State {}
 
-export default class PermitPage extends Component<Props, State> {
+export default class AuthorityPage extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
     this.state = {};
@@ -38,19 +38,43 @@ export default class PermitPage extends Component<Props, State> {
     return applicationStatus[index];
   }
 
-  formSubmit(data: FormikValues) {
-    this.props.cb(requestType.permitCreate, data);
+  updatePermit(id: number, status: applicationStatus) {
+    const data: any = {
+      id: id,
+      status: status,
+    };
+    this.props.cb(requestType.permitUpdate, data);
   }
 
   render() {
     const { user } = this.props;
 
-    const permitApplicationForm = (
-      <FormCard
-        title={'Permit Application'}
-        form={<PermitForm cb={(data: FormikValues) => this.formSubmit(data)} />}
-      />
-    );
+    const actionButtons = (permit: any) => {
+      // TODO fix conditional rendering here - not rerendering when changing accounts
+      if (user === Authority) {
+        return (
+          <div>
+            <Button
+              onClick={() =>
+                this.updatePermit(
+                  parseInt(permit.id),
+                  applicationStatus.approved
+                )
+              }
+            >
+              Approve
+            </Button>
+            <Button
+              onClick={() =>
+                this.updatePermit(parseInt(permit.id), applicationStatus.denied)
+              }
+            >
+              Deny
+            </Button>
+          </div>
+        );
+      }
+    };
 
     const permitTable = (
       <Table>
@@ -73,7 +97,7 @@ export default class PermitPage extends Component<Props, State> {
                     <td>{permit.document}</td>
                     <td>{permit.licenceNumber}</td>
                     <td>{this.getStatus(permit.status)}</td>
-                    {/* <td>{actionButtons(permit)}</td> */}
+                    <td>{actionButtons(permit)}</td>
                   </tr>
                 );
               })
@@ -85,17 +109,13 @@ export default class PermitPage extends Component<Props, State> {
     return (
       <div>
         <Jumbotron>
-          <h1>Selling your property?</h1>
-          <p>Sell with us on the blockchain. Smarter, faster, safer.</p>
-          <p>Sign in as a seller and apply below!</p>
+          <h1>Authority Portal</h1>
+          <p>Approve or deny sellers permit applications below</p>
         </Jumbotron>
-        {user === Seller ? (
-          <div>
-            {permitApplicationForm}
-            {permitTable}
-          </div>
+        {user === Authority ? (
+          <div>{permitTable}</div>
         ) : (
-          'To create a permit, please sign in as a seller'
+          'Unauthorised user - please inform admin of this issue.'
         )}
       </div>
     );
