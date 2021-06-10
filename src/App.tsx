@@ -5,21 +5,30 @@ import Web3 from 'web3';
 import Footer from './components/Footer';
 import NavigationBar from './components/NavigationBar';
 import Main from './pages/main';
-import Loan from './pages/loans'
+import Loan from './pages/loans';
 import { applicationStatus, requestType } from './utils/enums';
 import LoadSpinner from './components/LoadSpinner';
 import { FormikValues } from 'formik';
 import { Authority, Seller } from 'utils/addresses';
+import {
+  BrowserRouter as Router,
+  Route,
+  Switch,
+  RouteComponentProps,
+} from 'react-router-dom';
+import routes from 'utils/routes';
+import HomePage from 'pages/home';
+import PermitPage, { Permit } from 'pages/permit';
 const Marketplace = require('./abis/Marketplace.json');
 
-interface Permit {
-  id: number;
-  owner: string;
-  propertyAddress: string;
-  document: string;
-  licenceNumber: string;
-  status: applicationStatus;
-}
+// interface Permit {
+//   id: number;
+//   owner: string;
+//   propertyAddress: string;
+//   document: string;
+//   licenceNumber: string;
+//   status: applicationStatus;
+// }
 
 interface Props {}
 
@@ -111,7 +120,7 @@ export default class App extends Component<Props, State> {
       );
       // get permit count to perform loop - no .length in Solidity
       const permitCount = await marketplace.methods.permitCount().call();
-      // get loan count 
+      // get loan count
       const loanCount = await marketplace.methods.loanCount().call();
       // loop through array of permits in marketplace, add into state
       this.getPermits(permitCount, marketplace);
@@ -156,7 +165,6 @@ export default class App extends Component<Props, State> {
     }
   }
 
-
   /**
    * Creates a sell permit and puts it in the marketplace
    * @param data User input from the form - Formik validated
@@ -176,25 +184,31 @@ export default class App extends Component<Props, State> {
       });
   }
 
-    /**
+  /**
    * Creates a loan and puts it in the marketplace
    * @param data User input from the form - Formik validated
    */
-     createLoan(data: FormikValues) {
-      this.setState({ loading: true });
-      this.state.marketplace.methods
-        .createLoan(data.fullName, data.annualIncome, data.propertyAddress, data.loanAmount, 0)
-        .send({ from: this.state.account })
-        .on('receipt', (receipt: any) => {
-          this.loadBlockchainData();
-          this.setState({ loading: false });
-        })
-        .on('error', async (error: any) => {
-          console.log(error);
-          this.setState({ loading: false });
-        });
-    }
-  
+  createLoan(data: FormikValues) {
+    this.setState({ loading: true });
+    this.state.marketplace.methods
+      .createLoan(
+        data.fullName,
+        data.annualIncome,
+        data.propertyAddress,
+        data.loanAmount,
+        0
+      )
+      .send({ from: this.state.account })
+      .on('receipt', (receipt: any) => {
+        this.loadBlockchainData();
+        this.setState({ loading: false });
+      })
+      .on('error', async (error: any) => {
+        console.log(error);
+        this.setState({ loading: false });
+      });
+  }
+
   /**
    * Updates permits status when called
    * @param id permit ID
@@ -219,7 +233,7 @@ export default class App extends Component<Props, State> {
    * @param id permit ID
    * @param status status to update permit to
    */
-   updateLoan(id: number, status: applicationStatus) {
+  updateLoan(id: number, status: applicationStatus) {
     this.setState({ loading: true });
     this.state.marketplace.methods
       .updateLoan(id, status)
@@ -233,7 +247,6 @@ export default class App extends Component<Props, State> {
         this.setState({ loading: false });
       });
   }
-
 
   /**
    * Function that directs the call back to the appropriate function based on the request type
@@ -264,21 +277,59 @@ export default class App extends Component<Props, State> {
   getAccountType() {
     switch (this.state.account) {
       case Seller:
-        return "Seller"
-    
+        return 'Seller';
+
       case Authority:
-        return "Authority"
-    
+        return 'Authority';
+
       default:
-        return "Not logged in"
+        return 'Not logged in';
     }
   }
 
   render() {
-    
     return (
       <div>
-        <NavigationBar account={this.getAccountType()} />
+        <Router>
+          <NavigationBar account={this.getAccountType()} />
+          <Container>
+            <Switch>
+              <Route exact path='/'>
+                <HomePage permits={this.state.permits} />
+              </Route>
+              <Route exact path='/permit'>
+                <PermitPage
+                  permits={this.state.permits}
+                  user={this.state.account}
+                  cb={(requestType: requestType, data: any) =>
+                    this.runCallBack(requestType, data)
+                  }
+                />
+              </Route>
+              {/* {routes.map((route, index) => {
+                return (
+                  <Route
+                    key={index}
+                    path={route.path}
+                    exact={route.exact}
+                    render={(props: RouteComponentProps<any>) => (
+                      <route.component {...props} {...route.props} />
+                    )}
+                  />
+                );
+              })} */}
+            </Switch>
+            {/* <Main
+              cb={(requestType: requestType, data: any) =>
+                this.runCallBack(requestType, data)
+              }
+              userAddress={this.state.account}
+              marketplaceAddress={this.state.marketplaceAddress}
+              permits={this.state.permits}
+            /> */}
+          </Container>
+        </Router>
+        {/* 
         <Container>
           {this.state.loading ? (
             <LoadSpinner />
@@ -293,17 +344,17 @@ export default class App extends Component<Props, State> {
                 permits={this.state.permits}
               />
               <Loan
-              cb={(requestType: requestType, data: any) =>
-                this.runCallBack(requestType, data)
-              }
-              userAddress={this.state.account}
-              marketplaceAddress={this.state.marketplaceAddress}
-              loans={this.state.loans}
+                cb={(requestType: requestType, data: any) =>
+                  this.runCallBack(requestType, data)
+                }
+                userAddress={this.state.account}
+                marketplaceAddress={this.state.marketplaceAddress}
+                loans={this.state.loans}
               />
             </div>
           )}
         </Container>
-        <Footer />
+        <Footer /> */}
       </div>
     );
   }

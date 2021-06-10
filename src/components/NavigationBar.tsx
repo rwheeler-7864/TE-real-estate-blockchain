@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { Navbar, Nav, NavDropdown } from 'react-bootstrap';
+import { Link } from 'react-router-dom';
 
 interface Props {
   account: string;
@@ -9,23 +10,21 @@ interface State {}
 
 export default class NavigationBar extends Component<Props, State> {
   constructor(props: Props) {
-    super(props)
-    this.state = {
-      
-    }
+    super(props);
+    this.state = {};
   }
 
-  // TODO add react router to this
   render() {
     return (
       <Navbar bg='light' expand='lg'>
-        <Navbar.Brand href='/'>Real Estate Marketplace</Navbar.Brand>
+        <Navbar.Brand href='/'>J&amp;S Real Estate</Navbar.Brand>
         <Navbar.Toggle aria-controls='basic-navbar-nav' />
         <Navbar.Collapse id='basic-navbar-nav'>
           <Nav className='mr-auto'>
-            <Nav.Link href='#link'>Permit Approvals</Nav.Link>
-            <Nav.Link href='#link'>Loan Approvals</Nav.Link>
-            
+            <Nav.Link href='/permit'>Permit Applications</Nav.Link>
+            <Nav.Link href='/loan'>Loan Applications</Nav.Link>
+            <Nav.Link href='/authority'>Authority Portal</Nav.Link>
+            <Nav.Link href='/bank'>Bank Portal</Nav.Link>
           </Nav>
           <Nav>
             <Nav.Link href='#user'>{this.props.account}</Nav.Link>
