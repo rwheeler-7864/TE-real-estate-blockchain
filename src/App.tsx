@@ -5,7 +5,7 @@ import Web3 from 'web3';
 import Footer from './components/Footer';
 import NavigationBar from './components/NavigationBar';
 import Main from './pages/main';
-import Loans from './pages/loans'
+import Loan from './pages/loans'
 import { applicationStatus, requestType } from './utils/enums';
 import LoadSpinner from './components/LoadSpinner';
 import { FormikValues } from 'formik';
@@ -23,7 +23,7 @@ interface Permit {
 
 interface Props {}
 
-interface Loan {
+interface LoanI {
   id: number;
   owner: string;
   fullName: string;
@@ -38,7 +38,7 @@ interface State {
   loading: boolean;
   permitCount: number;
   permits: Permit[];
-  loans: Loan[];
+  loans: LoanI[];
   loanCount: number;
   marketplace: any;
   marketplaceAddress: string;
@@ -283,14 +283,24 @@ export default class App extends Component<Props, State> {
           {this.state.loading ? (
             <LoadSpinner />
           ) : (
-            <Main
+            <div>
+              <Main
+                cb={(requestType: requestType, data: any) =>
+                  this.runCallBack(requestType, data)
+                }
+                userAddress={this.state.account}
+                marketplaceAddress={this.state.marketplaceAddress}
+                permits={this.state.permits}
+              />
+              <Loan
               cb={(requestType: requestType, data: any) =>
                 this.runCallBack(requestType, data)
               }
               userAddress={this.state.account}
               marketplaceAddress={this.state.marketplaceAddress}
-              permits={this.state.permits}
-            />
+              loans={this.state.loans}
+              />
+            </div>
           )}
         </Container>
         <Footer />

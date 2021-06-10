@@ -18,7 +18,7 @@ interface State {
   formValues: FormikValues;
 }
 
-export default class Main extends Component<Props, State> {
+export default class Loan extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
     this.state = {
