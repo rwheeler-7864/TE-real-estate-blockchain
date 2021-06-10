@@ -6,6 +6,8 @@ export enum applicationStatus {
 }
 
 export enum requestType {
-  create = 0,
-  update = 1,
+  permitCreate = 0,
+  permitUpdate = 1,
+  loanCreate = 2,
+  loanUpdate = 3,
 }

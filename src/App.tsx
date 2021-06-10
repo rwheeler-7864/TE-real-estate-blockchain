@@ -5,10 +5,11 @@ import Web3 from 'web3';
 import Footer from './components/Footer';
 import NavigationBar from './components/NavigationBar';
 import Main from './pages/main';
+import Loan from './pages/loans'
 import { applicationStatus, requestType } from './utils/enums';
 import LoadSpinner from './components/LoadSpinner';
 import { FormikValues } from 'formik';
-import { Authority, Seller } from 'utils/addresses';
+import { Authority, Seller, Bank, Buyer } from 'utils/addresses';
 const Marketplace = require('./abis/Marketplace.json');
 
 interface Permit {
@@ -22,11 +23,23 @@ interface Permit {
 
 interface Props {}
 
+interface LoanI {
+  id: number;
+  owner: string;
+  fullName: string;
+  annualIncome: number;
+  propertyAddress: string;
+  loanAmount: number;
+  status: applicationStatus;
+}
+
 interface State {
   account: string;
   loading: boolean;
   permitCount: number;
   permits: Permit[];
+  loans: LoanI[];
+  loanCount: number;
   marketplace: any;
   marketplaceAddress: string;
 }
@@ -54,6 +67,8 @@ export default class App extends Component<Props, State> {
       loading: true,
       permitCount: 0,
       permits: [],
+      loans: [],
+      loanCount: 0,
       marketplace: {},
       marketplaceAddress: '',
     };
@@ -96,11 +111,15 @@ export default class App extends Component<Props, State> {
       );
       // get permit count to perform loop - no .length in Solidity
       const permitCount = await marketplace.methods.permitCount().call();
+      // get loan count 
+      const loanCount = await marketplace.methods.loanCount().call();
       // loop through array of permits in marketplace, add into state
       this.getPermits(permitCount, marketplace);
+      this.getLoans(loanCount, marketplace);
       this.setState({
         marketplace,
         permitCount: permitCount.toString(),
+        loanCount: loanCount.toString(),
         marketplaceAddress: networkData.address,
         loading: false,
       });
@@ -129,6 +148,15 @@ export default class App extends Component<Props, State> {
     }
   }
 
+  async getLoans(loanCount: number, marketplace: any) {
+    this.setState({ loans: [] });
+    for (let i = 1; i <= loanCount; i++) {
+      const loan = await marketplace.methods.loans(i).call();
+      this.setState({ loans: [...this.state.loans, loan] });
+    }
+  }
+
+
   /**
    * Creates a sell permit and puts it in the marketplace
    * @param data User input from the form - Formik validated
@@ -136,7 +164,7 @@ export default class App extends Component<Props, State> {
   createPermit(data: FormikValues) {
     this.setState({ loading: true });
     this.state.marketplace.methods
-      .createPermit(data.propertyAddress, data.document, data.licenceNumber, 0)
+      .createPermit(data.propertyAddress, data.document.split("\\").pop(), data.licenceNumber, 0)
       .send({ from: this.state.account })
       .on('receipt', (receipt: any) => {
         this.loadBlockchainData();
@@ -148,6 +176,25 @@ export default class App extends Component<Props, State> {
       });
   }
 
+    /**
+   * Creates a loan and puts it in the marketplace
+   * @param data User input from the form - Formik validated
+   */
+     createLoan(data: FormikValues) {
+      this.setState({ loading: true });
+      this.state.marketplace.methods
+        .createLoan(data.fullName, data.annualIncome, data.propertyAddress, data.loanAmount, 0)
+        .send({ from: this.state.account })
+        .on('receipt', (receipt: any) => {
+          this.loadBlockchainData();
+          this.setState({ loading: false });
+        })
+        .on('error', async (error: any) => {
+          console.log(error);
+          this.setState({ loading: false });
+        });
+    }
+  
   /**
    * Updates permits status when called
    * @param id permit ID
@@ -167,6 +214,26 @@ export default class App extends Component<Props, State> {
         this.setState({ loading: false });
       });
   }
+  /**
+   * Updates Loan status when called
+   * @param id permit ID
+   * @param status status to update permit to
+   */
+   updateLoan(id: number, status: applicationStatus) {
+    this.setState({ loading: true });
+    this.state.marketplace.methods
+      .updateLoan(id, status)
+      .send({ from: this.state.account })
+      .on('receipt', (receipt: any) => {
+        this.loadBlockchainData();
+        this.setState({ loading: false });
+      })
+      .on('error', async (error: any) => {
+        console.log(error);
+        this.setState({ loading: false });
+      });
+  }
+
 
   /**
    * Function that directs the call back to the appropriate function based on the request type
@@ -182,6 +249,12 @@ export default class App extends Component<Props, State> {
       case 1:
         this.updatePermit(data.id, data.status);
         break;
+      case 2:
+        this.createLoan(data);
+        break;
+      case 3:
+        this.updateLoan(data.id, data.status);
+        break;
       default:
         break;
     }
@@ -195,7 +268,12 @@ export default class App extends Component<Props, State> {
     
       case Authority:
         return "Authority"
-    
+      
+      case Buyer:
+        return "Buyer"
+
+      case Bank:
+        return "Bank"
       default:
         return "Not logged in"
     }
@@ -210,14 +288,24 @@ export default class App extends Component<Props, State> {
           {this.state.loading ? (
             <LoadSpinner />
           ) : (
-            <Main
+            <div>
+              <Main
+                cb={(requestType: requestType, data: any) =>
+                  this.runCallBack(requestType, data)
+                }
+                userAddress={this.state.account}
+                marketplaceAddress={this.state.marketplaceAddress}
+                permits={this.state.permits}
+              />
+              <Loan
               cb={(requestType: requestType, data: any) =>
                 this.runCallBack(requestType, data)
               }
               userAddress={this.state.account}
               marketplaceAddress={this.state.marketplaceAddress}
-              permits={this.state.permits}
-            />
+              loans={this.state.loans}
+              />
+            </div>
           )}
         </Container>
         <Footer />
