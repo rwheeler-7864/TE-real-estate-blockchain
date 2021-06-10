@@ -3,14 +3,14 @@ import React, { Component } from 'react';
 import { Button, ListGroup, ListGroupItem, Table } from 'react-bootstrap';
 import { Authority, Seller } from 'utils/addresses';
 import FormCard from '../components/FormCard';
-import PermitForm from '../components/forms/PermitForm';
+import LoanForm from '../components/forms/LoanForm';
 import { applicationStatus, requestType } from '../utils/enums';
 // import applicationStatus from '../App';
 
 interface Props {
   marketplaceAddress: string;
   userAddress: string;
-  permits: any[];
+  loans: any[];
   cb: (requestType: requestType, data: any) => void;
 }
 
@@ -32,36 +32,36 @@ export default class Main extends Component<Props, State> {
 
   formSubmit(data: FormikValues) {
     console.log('formValues in Main', data);
-    this.props.cb(requestType.permitCreate, data);
+    this.props.cb(requestType.loanCreate, data);
   }
 
-  updatePermit(id: number, status: applicationStatus) {
+  updateLoan(id: number, status: applicationStatus) {
     const data: any = {
       id: id,
       status: status,
     };
-    this.props.cb(requestType.permitUpdate, data);
+    this.props.cb(requestType.loanUpdate, data);
   }
 
   render() {
     let userAddress = this.props.userAddress;
 
-    const permitApplication = (
+    const loanApplication = (
       <FormCard
-        title={'Permit Application'}
-        form={<PermitForm cb={(data: FormikValues) => this.formSubmit(data)} />}
+        title={'Loan Application'}
+        form={<LoanForm cb={(data: FormikValues) => this.formSubmit(data)} />}
       />
     );
 
-    const actionButtons = (permit: any) => {
+    const actionButtons = (loan: any) => {
       // TODO fix conditional rendering here - not rerendering when changing accounts
       if (userAddress === Authority) {
         return (
           <div>
             <Button
               onClick={() =>
-                this.updatePermit(
-                  parseInt(permit.id),
+                this.updateLoan(
+                  parseInt(loan.id),
                   applicationStatus.approved
                 )
               }
@@ -70,7 +70,7 @@ export default class Main extends Component<Props, State> {
             </Button>
             <Button
               onClick={() =>
-                this.updatePermit(parseInt(permit.id), applicationStatus.denied)
+                this.updateLoan(parseInt(loan.id), applicationStatus.denied)
               }
             >
               Deny
@@ -87,7 +87,7 @@ export default class Main extends Component<Props, State> {
           </ListGroupItem>
           <ListGroupItem>User Address: {this.props.userAddress}</ListGroupItem>
           <ListGroupItem>
-            Permit Count: {this.props.permits.length}
+            Permit Count: {this.props.loans.length}
           </ListGroupItem>
         </ListGroup>
         <Table>
@@ -95,31 +95,33 @@ export default class Main extends Component<Props, State> {
             <tr>
               <th>ID</th>
               <th>Owner</th>
+              <th>Full Name</th>
+              <th>Annual Income</th>
               <th>Property Address</th>
-              <th>Document</th>
-              <th>Licence Number</th>
+              <th>Loan Amount</th>
               <th>Status</th>
             </tr>
-            {this.props.permits.length > 0
-              ? this.props.permits.map((permit, key) => {
+            {this.props.loans.length > 0
+              ? this.props.loans.map((loan, key) => {
                   let status = typeof applicationStatus;
-                  status = permit.status;
+                  status = loan.status;
                   return (
                     <tr key={key}>
-                      <td>{permit.id.toString()}</td>
-                      <td>{permit.owner}</td>
-                      <td>{permit.propertyAddress}</td>
-                      <td>{permit.document}</td>
-                      <td>{permit.licenceNumber}</td>
-                      <td>{this.getStatus(permit.status)}</td>
-                      <td>{actionButtons(permit)}</td>
+                      <td>{loan.id.toString()}</td>
+                      <td>{loan.owner}</td>
+                      <td>{loan.fullName}</td>
+                      <td>{loan.annualIncome}</td>
+                      <td>{loan.propertyAddress}</td>
+                      <td>{loan.loanAmount}</td>
+                      <td>{this.getStatus(loan.status)}</td>
+                      <td>{actionButtons(loan)}</td>
                     </tr>
                   );
                 })
               : ''}
           </thead>
         </Table>
-        {permitApplication}
+        {loanApplication}
       </div>
     );
   }
