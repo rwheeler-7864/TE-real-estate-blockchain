@@ -59,7 +59,7 @@ export default function PermitForm(props: Props) {
             <Form.Group as={Col} controlId='document'>
               <Form.Label>Document</Form.Label>
               <Form.Control
-                type='text'
+                type='file'
                 name='document'
                 placeholder='Document'
                 value={values.document}

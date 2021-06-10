@@ -5,7 +5,6 @@ import Web3 from 'web3';
 import NavigationBar from './components/NavigationBar';
 import { applicationStatus, requestType } from './utils/enums';
 import { FormikValues } from 'formik';
-import { Authority, Bank, Seller } from 'utils/addresses';
 import {
   BrowserRouter as Router,
   Redirect,
@@ -20,6 +19,7 @@ import { Loan, Permit } from 'utils/types';
 import LoadSpinner from 'components/LoadSpinner';
 import AuthorityPage from 'pages/authority';
 import BankPage from 'pages/bank';
+import { Authority, Seller, Bank, Buyer } from 'utils/addresses';
 const Marketplace = require('./abis/Marketplace.json');
 
 interface Props {}
@@ -148,7 +148,12 @@ export default class App extends Component<Props, State> {
   createPermit(data: FormikValues) {
     this.setState({ loading: true });
     this.state.marketplace.methods
-      .createPermit(data.propertyAddress, data.document, data.licenceNumber, 0)
+      .createPermit(
+        data.propertyAddress,
+        data.document.split('\\').pop(),
+        data.licenceNumber,
+        0
+      )
       .send({ from: this.state.account })
       .on('receipt', (receipt: any) => {
         this.loadBlockchainData();
@@ -258,6 +263,11 @@ export default class App extends Component<Props, State> {
       case Authority:
         return 'Authority';
 
+      case Buyer:
+        return 'Buyer';
+
+      case Bank:
+        return 'Bank';
       default:
         return 'Not logged in';
     }
