@@ -26,10 +26,6 @@ export default class Main extends Component<Props, State> {
     };
   }
 
-  getStatus(index: number): string {
-    return applicationStatus[index];
-  }
-
   formSubmit(data: FormikValues) {
     console.log('formValues in Main', data);
     this.props.cb(requestType.permitCreate, data);
@@ -45,13 +41,6 @@ export default class Main extends Component<Props, State> {
 
   render() {
     let userAddress = this.props.userAddress;
-
-    const permitApplication = (
-      <FormCard
-        title={'Permit Application'}
-        form={<PermitForm cb={(data: FormikValues) => this.formSubmit(data)} />}
-      />
-    );
 
     const actionButtons = (permit: any) => {
       // TODO fix conditional rendering here - not rerendering when changing accounts
@@ -90,36 +79,6 @@ export default class Main extends Component<Props, State> {
             Permit Count: {this.props.permits.length}
           </ListGroupItem>
         </ListGroup>
-        <Table>
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Owner</th>
-              <th>Property Address</th>
-              <th>Document</th>
-              <th>Licence Number</th>
-              <th>Status</th>
-            </tr>
-            {this.props.permits.length > 0
-              ? this.props.permits.map((permit, key) => {
-                  let status = typeof applicationStatus;
-                  status = permit.status;
-                  return (
-                    <tr key={key}>
-                      <td>{permit.id.toString()}</td>
-                      <td>{permit.owner}</td>
-                      <td>{permit.propertyAddress}</td>
-                      <td>{permit.document}</td>
-                      <td>{permit.licenceNumber}</td>
-                      <td>{this.getStatus(permit.status)}</td>
-                      <td>{actionButtons(permit)}</td>
-                    </tr>
-                  );
-                })
-              : ''}
-          </thead>
-        </Table>
-        {permitApplication}
       </div>
     );
   }

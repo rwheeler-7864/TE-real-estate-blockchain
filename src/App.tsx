@@ -2,52 +2,25 @@ import React, { Component } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Container, Spinner, ThemeProvider } from 'react-bootstrap';
 import Web3 from 'web3';
-import Footer from './components/Footer';
 import NavigationBar from './components/NavigationBar';
-import Main from './pages/main';
-import Loan from './pages/loans';
 import { applicationStatus, requestType } from './utils/enums';
-import LoadSpinner from './components/LoadSpinner';
 import { FormikValues } from 'formik';
 import { Authority, Seller } from 'utils/addresses';
-import {
-  BrowserRouter as Router,
-  Route,
-  Switch,
-  RouteComponentProps,
-} from 'react-router-dom';
-import routes from 'utils/routes';
+import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 import HomePage from 'pages/home';
-import PermitPage, { Permit } from 'pages/permit';
+import PermitPage from 'pages/permit';
+import LoanPage from './pages/loans';
+import { Loan, Permit } from 'utils/types';
 const Marketplace = require('./abis/Marketplace.json');
 
-// interface Permit {
-//   id: number;
-//   owner: string;
-//   propertyAddress: string;
-//   document: string;
-//   licenceNumber: string;
-//   status: applicationStatus;
-// }
-
 interface Props {}
-
-interface LoanI {
-  id: number;
-  owner: string;
-  fullName: string;
-  annualIncome: number;
-  propertyAddress: string;
-  loanAmount: number;
-  status: applicationStatus;
-}
 
 interface State {
   account: string;
   loading: boolean;
   permitCount: number;
   permits: Permit[];
-  loans: LoanI[];
+  loans: Loan[];
   loanCount: number;
   marketplace: any;
   marketplaceAddress: string;
@@ -300,6 +273,15 @@ export default class App extends Component<Props, State> {
               <Route exact path='/permit'>
                 <PermitPage
                   permits={this.state.permits}
+                  user={this.state.account}
+                  cb={(requestType: requestType, data: any) =>
+                    this.runCallBack(requestType, data)
+                  }
+                />
+              </Route>
+              <Route exact path='/loan'>
+                <LoanPage
+                  loans={this.state.loans}
                   user={this.state.account}
                   cb={(requestType: requestType, data: any) =>
                     this.runCallBack(requestType, data)

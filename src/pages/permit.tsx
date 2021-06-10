@@ -1,30 +1,11 @@
 import React, { Component } from 'react';
 import { applicationStatus, requestType } from 'utils/enums';
-import IPage from '../utils/pages';
-
-import PermitCard from 'components/PermitCard';
-import {
-  Alert,
-  Card,
-  Jumbotron,
-  ListGroup,
-  ListGroupItem,
-  Table,
-} from 'react-bootstrap';
-import { RouteComponentProps } from 'react-router';
+import { Jumbotron, Table } from 'react-bootstrap';
 import { Seller } from 'utils/addresses';
 import FormCard from 'components/FormCard';
 import PermitForm from 'components/forms/PermitForm';
 import { FormikValues } from 'formik';
-
-export type Permit = {
-  id: number;
-  owner: string;
-  propertyAddress: string;
-  document: string;
-  licenceNumber: string;
-  status: applicationStatus;
-};
+import { Permit } from 'utils/types';
 
 interface Props {
   permits: Permit[];
@@ -45,7 +26,6 @@ export default class PermitPage extends Component<Props, State> {
   }
 
   formSubmit(data: FormikValues) {
-    console.log('formValues in Main', data);
     this.props.cb(requestType.permitCreate, data);
   }
 

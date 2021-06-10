@@ -1,15 +1,8 @@
 import PermitCard from 'components/PermitCard';
 import React, { Component } from 'react';
-import {
-  Alert,
-  Card,
-  Jumbotron,
-  ListGroup,
-  ListGroupItem,
-} from 'react-bootstrap';
-import { RouteComponentProps } from 'react-router';
+import { Alert, Jumbotron } from 'react-bootstrap';
 import { applicationStatus } from 'utils/enums';
-import { Permit } from './permit';
+import { Permit } from 'utils/types';
 
 interface Props {
   permits: Permit[];

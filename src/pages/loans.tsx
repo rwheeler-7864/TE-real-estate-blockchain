@@ -1,16 +1,15 @@
 import { FormikValues } from 'formik';
 import React, { Component } from 'react';
-import { Button, ListGroup, ListGroupItem, Table } from 'react-bootstrap';
-import { Authority, Seller } from 'utils/addresses';
+import { Jumbotron, Table } from 'react-bootstrap';
+import { Authority, Buyer, Seller } from 'utils/addresses';
+import { Loan } from 'utils/types';
 import FormCard from '../components/FormCard';
 import LoanForm from '../components/forms/LoanForm';
 import { applicationStatus, requestType } from '../utils/enums';
-// import applicationStatus from '../App';
 
 interface Props {
-  marketplaceAddress: string;
-  userAddress: string;
-  loans: any[];
+  loans: Loan[];
+  user: String;
   cb: (requestType: requestType, data: any) => void;
 }
 
@@ -18,7 +17,7 @@ interface State {
   formValues: FormikValues;
 }
 
-export default class Loan extends Component<Props, State> {
+export default class LoanPage extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
     this.state = {
@@ -31,97 +30,76 @@ export default class Loan extends Component<Props, State> {
   }
 
   formSubmit(data: FormikValues) {
-    console.log('formValues in Main', data);
     this.props.cb(requestType.loanCreate, data);
   }
 
-  updateLoan(id: number, status: applicationStatus) {
-    const data: any = {
-      id: id,
-      status: status,
-    };
-    this.props.cb(requestType.loanUpdate, data);
-  }
+  // updateLoan(id: number, status: applicationStatus) {
+  //   const data: any = {
+  //     id: id,
+  //     status: status,
+  //   };
+  //   this.props.cb(requestType.loanUpdate, data);
+  // }
 
   render() {
-    let userAddress = this.props.userAddress;
+    const { user } = this.props;
 
-    const loanApplication = (
+    const loanApplicationForm = (
       <FormCard
         title={'Loan Application'}
         form={<LoanForm cb={(data: FormikValues) => this.formSubmit(data)} />}
       />
     );
 
-    const actionButtons = (loan: any) => {
-      // TODO fix conditional rendering here - not rerendering when changing accounts
-      if (userAddress === Authority) {
-        return (
-          <div>
-            <Button
-              onClick={() =>
-                this.updateLoan(
-                  parseInt(loan.id),
-                  applicationStatus.approved
-                )
-              }
-            >
-              Approve
-            </Button>
-            <Button
-              onClick={() =>
-                this.updateLoan(parseInt(loan.id), applicationStatus.denied)
-              }
-            >
-              Deny
-            </Button>
-          </div>
-        );
-      }
-    };
+    const loanTable = (
+      <Table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Owner</th>
+            <th>Full Name</th>
+            <th>Annual Income</th>
+            <th>Property Address</th>
+            <th>Loan Amount</th>
+            <th>Status</th>
+          </tr>
+          {this.props.loans.length > 0
+            ? this.props.loans.map((loan, key) => {
+                return (
+                  <tr key={key}>
+                    <td>{loan.id.toString()}</td>
+                    <td>{loan.owner}</td>
+                    <td>{loan.fullName}</td>
+                    <td>{loan.annualIncome}</td>
+                    <td>{loan.propertyAddress}</td>
+                    <td>{loan.loanAmount}</td>
+                    <td>{this.getStatus(loan.status)}</td>
+                    {/* <td>{actionButtons(loan)}</td> */}
+                  </tr>
+                );
+              })
+            : ''}
+        </thead>
+      </Table>
+    );
+
     return (
       <div>
-        <ListGroup>
-          <ListGroupItem>
-            Marketplace address: {this.props.marketplaceAddress}
-          </ListGroupItem>
-          <ListGroupItem>User Address: {this.props.userAddress}</ListGroupItem>
-          <ListGroupItem>
-            Permit Count: {this.props.loans.length}
-          </ListGroupItem>
-        </ListGroup>
-        <Table>
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Owner</th>
-              <th>Full Name</th>
-              <th>Annual Income</th>
-              <th>Property Address</th>
-              <th>Loan Amount</th>
-              <th>Status</th>
-            </tr>
-            {this.props.loans.length > 0
-              ? this.props.loans.map((loan, key) => {
-                  let status = typeof applicationStatus;
-                  status = loan.status;
-                  return (
-                    <tr key={key}>
-                      <td>{loan.id.toString()}</td>
-                      <td>{loan.owner}</td>
-                      <td>{loan.fullName}</td>
-                      <td>{loan.annualIncome}</td>
-                      <td>{loan.propertyAddress}</td>
-                      <td>{loan.loanAmount}</td>
-                      <td>{this.getStatus(loan.status)}</td>
-                      <td>{actionButtons(loan)}</td>
-                    </tr>
-                  );
-                })
-              : ''}
-          </thead>
-        </Table>
-        {loanApplication}
+        <Jumbotron>
+          <h1>Looking to buy?</h1>
+          <p>
+            You've come to the right place. Apply for a loan with J&amp;S Bank.
+          </p>
+          <p>Sign in as a buyer and apply below!</p>
+        </Jumbotron>
+        {user === Buyer ? (
+          <div>
+            {loanApplicationForm}
+            {loanTable}
+          </div>
+        ) : (
+          'To apply for a loan, please sign in as a buyer'
+        )}
       </div>
     );
   }
