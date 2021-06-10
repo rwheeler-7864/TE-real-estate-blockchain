@@ -9,7 +9,7 @@ import Loan from './pages/loans'
 import { applicationStatus, requestType } from './utils/enums';
 import LoadSpinner from './components/LoadSpinner';
 import { FormikValues } from 'formik';
-import { Authority, Seller } from 'utils/addresses';
+import { Authority, Seller, Bank, Buyer } from 'utils/addresses';
 const Marketplace = require('./abis/Marketplace.json');
 
 interface Permit {
@@ -164,7 +164,7 @@ export default class App extends Component<Props, State> {
   createPermit(data: FormikValues) {
     this.setState({ loading: true });
     this.state.marketplace.methods
-      .createPermit(data.propertyAddress, data.document, data.licenceNumber, 0)
+      .createPermit(data.propertyAddress, data.document.split("\\").pop(), data.licenceNumber, 0)
       .send({ from: this.state.account })
       .on('receipt', (receipt: any) => {
         this.loadBlockchainData();
@@ -268,7 +268,12 @@ export default class App extends Component<Props, State> {
     
       case Authority:
         return "Authority"
-    
+      
+      case Buyer:
+        return "Buyer"
+
+      case Bank:
+        return "Bank"
       default:
         return "Not logged in"
     }
