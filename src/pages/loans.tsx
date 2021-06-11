@@ -2,13 +2,14 @@ import { FormikValues } from 'formik';
 import React, { Component } from 'react';
 import { Jumbotron, Table } from 'react-bootstrap';
 import { Authority, Buyer, Seller } from 'utils/addresses';
-import { Loan } from 'utils/types';
+import { Loan, Permit } from 'utils/types';
 import FormCard from '../components/FormCard';
 import LoanForm from '../components/forms/LoanForm';
 import { applicationStatus, requestType } from '../utils/enums';
 
 interface Props {
   loans: Loan[];
+  permits: Permit[];
   user: String;
   cb: (requestType: requestType, data: any) => void;
 }
@@ -39,7 +40,12 @@ export default class LoanPage extends Component<Props, State> {
     const loanApplicationForm = (
       <FormCard
         title={'Loan Application'}
-        form={<LoanForm cb={(data: FormikValues) => this.formSubmit(data)} />}
+        form={
+          <LoanForm
+            permits={this.props.permits}
+            cb={(data: FormikValues) => this.formSubmit(data)}
+          />
+        }
       />
     );
 
@@ -48,7 +54,6 @@ export default class LoanPage extends Component<Props, State> {
         <thead>
           <tr>
             <th>ID</th>
-            <th>Owner</th>
             <th>Full Name</th>
             <th>Annual Income</th>
             <th>Property Address</th>
@@ -60,13 +65,11 @@ export default class LoanPage extends Component<Props, State> {
                 return (
                   <tr key={key}>
                     <td>{loan.id.toString()}</td>
-                    <td>{loan.owner}</td>
                     <td>{loan.fullName}</td>
                     <td>{loan.annualIncome}</td>
                     <td>{loan.propertyAddress}</td>
                     <td>{loan.loanAmount}</td>
                     <td>{this.getStatus(loan.status)}</td>
-                    {/* <td>{actionButtons(loan)}</td> */}
                   </tr>
                 );
               })
