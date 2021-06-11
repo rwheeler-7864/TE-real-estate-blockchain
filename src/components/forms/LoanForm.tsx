@@ -22,11 +22,14 @@ export default function LoanForm(props: Props) {
 
   useEffect(() => {
     setPermitCount(props.permits.length);
+    console.log(props.permits);
+    console.log(permitCount);
   }, []);
 
   /**
    * If there are permits that are valid, display their names in the select field
    * @returns options with property addresses OR no properties available
+   * TODO this is buggy - sometimes shows properties not available while they exist
    */
   function renderPermitOptions() {
     if (permitsExist()) {
@@ -34,7 +37,7 @@ export default function LoanForm(props: Props) {
         return <option>{permit.propertyAddress}</option>;
       });
     } else {
-      return <option>No available properties</option>;
+      return <option disabled={true}>No available properties</option>;
     }
   }
 
@@ -91,11 +94,14 @@ export default function LoanForm(props: Props) {
                 as='select'
                 name='propertyAddress'
                 placeholder='Property Address'
-                value={values.propertyAddress}
+                value={values.propertyAddress || 'NONE'}
                 onChange={handleChange}
                 isValid={touched.propertyAddress && !errors.propertyAddress}
                 isInvalid={!!errors.propertyAddress}
               >
+                <option value={'NONE'} disabled={true}>
+                  Select a property
+                </option>
                 {renderPermitOptions()}
               </Form.Control>
               <Form.Control.Feedback type='invalid'>

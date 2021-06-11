@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { applicationStatus, requestType } from 'utils/enums';
-import { Jumbotron, Table } from 'react-bootstrap';
+import { Alert, Card, Jumbotron, Table } from 'react-bootstrap';
 import { Seller } from 'utils/addresses';
 import FormCard from 'components/FormCard';
 import PermitForm from 'components/forms/PermitForm';
@@ -53,33 +53,35 @@ export default class PermitPage extends Component<Props, State> {
     );
 
     const permitTable = (
-      <Table>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Owner</th>
-            <th>Property Address</th>
-            <th>Document</th>
-            <th>Licence Number</th>
-            <th>Status</th>
-          </tr>
-          {this.props.permits.length > 0
-            ? this.props.permits.map((permit, key) => {
-                return (
-                  <tr key={key}>
-                    <td>{permit.id.toString()}</td>
-                    <td>{permit.owner}</td>
-                    <td>{permit.propertyAddress}</td>
-                    <td>{permit.document}</td>
-                    <td>{permit.licenceNumber}</td>
-                    <td>{this.getStatus(permit.status)}</td>
-                    {/* <td>{actionButtons(permit)}</td> */}
-                  </tr>
-                );
-              })
-            : 'No current permits'}
-        </thead>
-      </Table>
+      <Card className='table-card'>
+        <Table striped hover>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Property Address</th>
+              <th>Document</th>
+              <th>Licence Number</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {this.props.permits.length > 0
+              ? this.props.permits.map((permit, key) => {
+                  return (
+                    <tr key={key}>
+                      <td>{permit.id.toString()}</td>
+                      <td>{permit.propertyAddress}</td>
+                      <td>{permit.document}</td>
+                      <td>{permit.licenceNumber}</td>
+                      <td>{this.getStatus(permit.status)}</td>
+                      {/* <td>{actionButtons(permit)}</td> */}
+                    </tr>
+                  );
+                })
+              : 'No current permits'}
+          </tbody>
+        </Table>
+      </Card>
     );
 
     return (
@@ -95,7 +97,9 @@ export default class PermitPage extends Component<Props, State> {
             {permitTable}
           </div>
         ) : (
-          'To create a permit, please sign in as a seller'
+          <Alert variant='primary'>
+            To create a permit, please sign in as a seller
+          </Alert>
         )}
       </div>
     );

@@ -1,8 +1,9 @@
 import React, { Component } from 'react';
 import { applicationStatus, requestType } from 'utils/enums';
-import { Button, Jumbotron, Table } from 'react-bootstrap';
+import { Button, ButtonGroup, Card, Jumbotron, Table } from 'react-bootstrap';
 import { Authority, Bank, Seller } from 'utils/addresses';
 import { Loan } from 'utils/types';
+import ActionButton from 'components/ActionButton';
 
 interface Props {
   loans: Loan[];
@@ -34,11 +35,11 @@ export default class BankPage extends Component<Props, State> {
     const { user } = this.props;
 
     const actionButtons = (permit: any) => {
-      // TODO fix conditional rendering here - not rerendering when changing accounts
       if (user === Bank) {
         return (
-          <div>
+          <ButtonGroup size='sm'>
             <Button
+              variant='outline-primary'
               onClick={() =>
                 this.updateLoan(parseInt(permit.id), applicationStatus.approved)
               }
@@ -46,47 +47,51 @@ export default class BankPage extends Component<Props, State> {
               Approve
             </Button>
             <Button
+              variant='outline-primary'
               onClick={() =>
                 this.updateLoan(parseInt(permit.id), applicationStatus.denied)
               }
             >
               Deny
             </Button>
-          </div>
+          </ButtonGroup>
         );
       }
     };
 
     const loanTable = (
-      <Table>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Owner</th>
-            <th>Full Name</th>
-            <th>Annual Income</th>
-            <th>Property Address</th>
-            <th>Loan Amount</th>
-            <th>Status</th>
-          </tr>
-          {this.props.loans.length > 0
-            ? this.props.loans.map((loan, key) => {
-                return (
-                  <tr key={key}>
-                    <td>{loan.id.toString()}</td>
-                    <td>{loan.owner}</td>
-                    <td>{loan.fullName}</td>
-                    <td>{loan.annualIncome}</td>
-                    <td>{loan.propertyAddress}</td>
-                    <td>{loan.loanAmount}</td>
-                    <td>{this.getStatus(loan.status)}</td>
-                    {/* <td>{actionButtons(loan)}</td> */}
-                  </tr>
-                );
-              })
-            : ''}
-        </thead>
-      </Table>
+      <Card className='table-card'>
+        <Table hover striped>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Full Name</th>
+              <th>Annual Income</th>
+              <th>Property Address</th>
+              <th>Loan Amount</th>
+              <th>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {this.props.loans.length > 0
+              ? this.props.loans.map((loan, key) => {
+                  return (
+                    <tr key={key}>
+                      <td>{loan.id.toString()}</td>
+                      <td>{loan.fullName}</td>
+                      <td>{loan.annualIncome}</td>
+                      <td>{loan.propertyAddress}</td>
+                      <td>{loan.loanAmount}</td>
+                      <td>{this.getStatus(loan.status)}</td>
+                      <td>{actionButtons(loan)}</td>
+                    </tr>
+                  );
+                })
+              : ''}
+          </tbody>
+        </Table>
+      </Card>
     );
 
     return (

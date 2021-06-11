@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { Container, Spinner, ThemeProvider } from 'react-bootstrap';
+import 'App.css';
+import { Container } from 'react-bootstrap';
 import Web3 from 'web3';
 import NavigationBar from './components/NavigationBar';
 import { applicationStatus, requestType } from './utils/enums';
@@ -20,6 +21,7 @@ import LoadSpinner from 'components/LoadSpinner';
 import AuthorityPage from 'pages/authority';
 import BankPage from 'pages/bank';
 import { Authority, Seller, Bank, Buyer } from 'utils/addresses';
+
 const Marketplace = require('./abis/Marketplace.json');
 
 interface Props {}
