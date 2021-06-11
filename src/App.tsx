@@ -321,6 +321,7 @@ export default class App extends Component<Props, State> {
                 <Route exact path='/bank'>
                   <BankPage
                     loans={this.state.loans}
+                    permits={this.state.permits}
                     user={this.state.account}
                     cb={(requestType: requestType, data: any) =>
                       this.runCallBack(requestType, data)

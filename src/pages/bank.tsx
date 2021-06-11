@@ -2,11 +2,12 @@ import React, { Component } from 'react';
 import { applicationStatus, requestType } from 'utils/enums';
 import { Button, ButtonGroup, Card, Jumbotron, Table } from 'react-bootstrap';
 import { Authority, Bank, Seller } from 'utils/addresses';
-import { Loan } from 'utils/types';
+import { Loan, Permit } from 'utils/types';
 import ActionButton from 'components/ActionButton';
 
 interface Props {
   loans: Loan[];
+  permits: Permit[];
   user: String;
   cb: (requestType: requestType, data: any) => void;
 }
@@ -68,20 +69,28 @@ export default class BankPage extends Component<Props, State> {
               <th>Full Name</th>
               <th>Annual Income</th>
               <th>Property Address</th>
+              <th>Permit Status</th>
               <th>Loan Amount</th>
-              <th>Status</th>
+              <th>Loan Status</th>
               <th></th>
             </tr>
           </thead>
           <tbody>
             {this.props.loans.length > 0
               ? this.props.loans.map((loan, key) => {
+                  const permit = this.props.permits.find(
+                    (element) =>
+                      element.propertyAddress === loan.propertyAddress
+                  );
                   return (
                     <tr key={key}>
                       <td>{loan.id.toString()}</td>
                       <td>{loan.fullName}</td>
                       <td>{loan.annualIncome}</td>
                       <td>{loan.propertyAddress}</td>
+                      <td>
+                        {permit ? this.getStatus(permit.status) : 'No status'}
+                      </td>
                       <td>{loan.loanAmount}</td>
                       <td>{this.getStatus(loan.status)}</td>
                       <td>{actionButtons(loan)}</td>
