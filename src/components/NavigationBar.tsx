@@ -17,7 +17,7 @@ export default class NavigationBar extends Component<Props, State> {
 
   render() {
     return (
-      <Navbar bg='light' expand='lg'>
+      <Navbar bg='light' expand='lg' className='navbar'>
         <Navbar.Brand href='/'>J&amp;S Real Estate</Navbar.Brand>
         <Navbar.Toggle aria-controls='basic-navbar-nav' />
         <Navbar.Collapse id='basic-navbar-nav'>

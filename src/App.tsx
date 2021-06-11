@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { Container, Spinner, ThemeProvider } from 'react-bootstrap';
+import 'App.css';
+import { Container } from 'react-bootstrap';
 import Web3 from 'web3';
 import NavigationBar from './components/NavigationBar';
 import { applicationStatus, requestType } from './utils/enums';
@@ -20,6 +21,7 @@ import LoadSpinner from 'components/LoadSpinner';
 import AuthorityPage from 'pages/authority';
 import BankPage from 'pages/bank';
 import { Authority, Seller, Bank, Buyer } from 'utils/addresses';
+
 const Marketplace = require('./abis/Marketplace.json');
 
 interface Props {}
@@ -35,11 +37,6 @@ interface State {
   marketplaceAddress: string;
 }
 
-interface PrivateRouteProps extends RouteProps {
-  component: any;
-  isAuthority: boolean;
-  isBank: boolean;
-}
 
 // ignoring types - TODO fix this later
 declare let window: any;
@@ -297,6 +294,7 @@ export default class App extends Component<Props, State> {
               <Route exact path='/loan'>
                 <LoanPage
                   loans={this.state.loans}
+                  permits={this.state.permits}
                   user={this.state.account}
                   cb={(requestType: requestType, data: any) =>
                     this.runCallBack(requestType, data)
@@ -318,6 +316,7 @@ export default class App extends Component<Props, State> {
                 <Route exact path='/bank'>
                   <BankPage
                     loans={this.state.loans}
+                    permits={this.state.permits}
                     user={this.state.account}
                     cb={(requestType: requestType, data: any) =>
                       this.runCallBack(requestType, data)
