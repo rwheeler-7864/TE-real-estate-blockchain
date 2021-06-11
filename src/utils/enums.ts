@@ -5,7 +5,10 @@ export enum applicationStatus {
   purchased = 3,
 }
 
+// TODO think we can just have Create and Update
 export enum requestType {
-  create = 0,
-  update = 1,
+  permitCreate = 0,
+  permitUpdate = 1,
+  loanCreate = 2,
+  loanUpdate = 3,
 }

@@ -83,17 +83,10 @@ contract Marketplace {
     bank = 0xFD55579F56578959D269f87D9eAB9A97A09877f8;
 
     // Sids addresses
-    // seller = <ADD>;
-    // authority = <ADD>;
-    // buyer = <ADD>;
-    // bank = <ADD>;
-
-    // Add your addresses here
-    // marketplace = <ADD>;
-    // seller = <ADD>;
-    // authority = <ADD>;
-    // buyer = <ADD>;
-    // bank = <ADD>;
+    // seller = 0x386c0b9C66a334cEedf0059b1B4E44E43C2821a6;
+    // authority = 0x2E11fF485F0B543222e5cb392395f3ec748E37B8;
+    // buyer = 0x728Ad52C853e97Bb907F83F842043567266e3483;
+    // bank = 0x5c5857f8cEB15DA1DF8d0217EcA61c8B19db501E;
   }
 
   function createPermit(

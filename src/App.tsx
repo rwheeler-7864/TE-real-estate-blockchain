@@ -2,23 +2,25 @@ import React, { Component } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Container, Spinner, ThemeProvider } from 'react-bootstrap';
 import Web3 from 'web3';
-import Footer from './components/Footer';
 import NavigationBar from './components/NavigationBar';
-import Main from './pages/main';
 import { applicationStatus, requestType } from './utils/enums';
-import LoadSpinner from './components/LoadSpinner';
 import { FormikValues } from 'formik';
-import { Authority, Seller } from 'utils/addresses';
+import {
+  BrowserRouter as Router,
+  Redirect,
+  Route,
+  RouteProps,
+  Switch,
+} from 'react-router-dom';
+import HomePage from 'pages/home';
+import PermitPage from 'pages/permit';
+import LoanPage from './pages/loans';
+import { Loan, Permit } from 'utils/types';
+import LoadSpinner from 'components/LoadSpinner';
+import AuthorityPage from 'pages/authority';
+import BankPage from 'pages/bank';
+import { Authority, Seller, Bank, Buyer } from 'utils/addresses';
 const Marketplace = require('./abis/Marketplace.json');
-
-interface Permit {
-  id: number;
-  owner: string;
-  propertyAddress: string;
-  document: string;
-  licenceNumber: string;
-  status: applicationStatus;
-}
 
 interface Props {}
 
@@ -27,24 +29,20 @@ interface State {
   loading: boolean;
   permitCount: number;
   permits: Permit[];
+  loans: Loan[];
+  loanCount: number;
   marketplace: any;
   marketplaceAddress: string;
 }
 
+interface PrivateRouteProps extends RouteProps {
+  component: any;
+  isAuthority: boolean;
+  isBank: boolean;
+}
+
 // ignoring types - TODO fix this later
 declare let window: any;
-
-// https://stackoverflow.com/questions/2010892/storing-objects-in-html5-localstorage
-// allow for storing objects in local storage
-// Storage.prototype.setObject = function (key: string, value: {}) {
-//   this.setItem(key, JSON.stringify(value));
-// };
-
-// // get object from local storage
-// Storage.prototype.getObject = function (key: string) {
-//   let value = this.getItem(key);
-//   return value && JSON.parse(value);
-// };
 
 export default class App extends Component<Props, State> {
   constructor(props: Props) {
@@ -54,6 +52,8 @@ export default class App extends Component<Props, State> {
       loading: true,
       permitCount: 0,
       permits: [],
+      loans: [],
+      loanCount: 0,
       marketplace: {},
       marketplaceAddress: '',
     };
@@ -96,11 +96,15 @@ export default class App extends Component<Props, State> {
       );
       // get permit count to perform loop - no .length in Solidity
       const permitCount = await marketplace.methods.permitCount().call();
+      // get loan count
+      const loanCount = await marketplace.methods.loanCount().call();
       // loop through array of permits in marketplace, add into state
       this.getPermits(permitCount, marketplace);
+      this.getLoans(loanCount, marketplace);
       this.setState({
         marketplace,
         permitCount: permitCount.toString(),
+        loanCount: loanCount.toString(),
         marketplaceAddress: networkData.address,
         loading: false,
       });
@@ -129,6 +133,14 @@ export default class App extends Component<Props, State> {
     }
   }
 
+  async getLoans(loanCount: number, marketplace: any) {
+    this.setState({ loans: [] });
+    for (let i = 1; i <= loanCount; i++) {
+      const loan = await marketplace.methods.loans(i).call();
+      this.setState({ loans: [...this.state.loans, loan] });
+    }
+  }
+
   /**
    * Creates a sell permit and puts it in the marketplace
    * @param data User input from the form - Formik validated
@@ -136,7 +148,37 @@ export default class App extends Component<Props, State> {
   createPermit(data: FormikValues) {
     this.setState({ loading: true });
     this.state.marketplace.methods
-      .createPermit(data.propertyAddress, data.document, data.licenceNumber, 0)
+      .createPermit(
+        data.propertyAddress,
+        data.document.split('\\').pop(),
+        data.licenceNumber,
+        0
+      )
+      .send({ from: this.state.account })
+      .on('receipt', (receipt: any) => {
+        this.loadBlockchainData();
+        this.setState({ loading: false });
+      })
+      .on('error', async (error: any) => {
+        console.log(error);
+        this.setState({ loading: false });
+      });
+  }
+
+  /**
+   * Creates a loan and puts it in the marketplace
+   * @param data User input from the form - Formik validated
+   */
+  createLoan(data: FormikValues) {
+    this.setState({ loading: true });
+    this.state.marketplace.methods
+      .createLoan(
+        data.fullName,
+        data.annualIncome,
+        data.propertyAddress,
+        data.loanAmount,
+        0
+      )
       .send({ from: this.state.account })
       .on('receipt', (receipt: any) => {
         this.loadBlockchainData();
@@ -167,6 +209,25 @@ export default class App extends Component<Props, State> {
         this.setState({ loading: false });
       });
   }
+  /**
+   * Updates Loan status when called
+   * @param id permit ID
+   * @param status status to update permit to
+   */
+  updateLoan(id: number, status: applicationStatus) {
+    this.setState({ loading: true });
+    this.state.marketplace.methods
+      .updateLoan(id, status)
+      .send({ from: this.state.account })
+      .on('receipt', (receipt: any) => {
+        this.loadBlockchainData();
+        this.setState({ loading: false });
+      })
+      .on('error', async (error: any) => {
+        console.log(error);
+        this.setState({ loading: false });
+      });
+  }
 
   /**
    * Function that directs the call back to the appropriate function based on the request type
@@ -182,6 +243,12 @@ export default class App extends Component<Props, State> {
       case 1:
         this.updatePermit(data.id, data.status);
         break;
+      case 2:
+        this.createLoan(data);
+        break;
+      case 3:
+        this.updateLoan(data.id, data.status);
+        break;
       default:
         break;
     }
@@ -191,37 +258,79 @@ export default class App extends Component<Props, State> {
   getAccountType() {
     switch (this.state.account) {
       case Seller:
-        return "Seller"
-    
+        return 'Seller';
+
       case Authority:
-        return "Authority"
-    
+        return 'Authority';
+
+      case Buyer:
+        return 'Buyer';
+
+      case Bank:
+        return 'Bank';
       default:
-        return "Not logged in"
+        return 'Not logged in';
     }
   }
 
   render() {
-    
     return (
-      <div>
+      <Router>
         <NavigationBar account={this.getAccountType()} />
         <Container>
           {this.state.loading ? (
             <LoadSpinner />
           ) : (
-            <Main
-              cb={(requestType: requestType, data: any) =>
-                this.runCallBack(requestType, data)
-              }
-              userAddress={this.state.account}
-              marketplaceAddress={this.state.marketplaceAddress}
-              permits={this.state.permits}
-            />
+            <Switch>
+              <Route exact path='/'>
+                <HomePage permits={this.state.permits} />
+              </Route>
+              <Route exact path='/permit'>
+                <PermitPage
+                  permits={this.state.permits}
+                  user={this.state.account}
+                  cb={(requestType: requestType, data: any) =>
+                    this.runCallBack(requestType, data)
+                  }
+                />
+              </Route>
+              <Route exact path='/loan'>
+                <LoanPage
+                  loans={this.state.loans}
+                  user={this.state.account}
+                  cb={(requestType: requestType, data: any) =>
+                    this.runCallBack(requestType, data)
+                  }
+                />
+              </Route>
+              {this.state.account === Authority ? (
+                <Route exact path='/authority'>
+                  <AuthorityPage
+                    permits={this.state.permits}
+                    user={this.state.account}
+                    cb={(requestType: requestType, data: any) =>
+                      this.runCallBack(requestType, data)
+                    }
+                  />
+                </Route>
+              ) : null}
+              {this.state.account === Bank ? (
+                <Route exact path='/bank'>
+                  <BankPage
+                    loans={this.state.loans}
+                    user={this.state.account}
+                    cb={(requestType: requestType, data: any) =>
+                      this.runCallBack(requestType, data)
+                    }
+                  />
+                </Route>
+              ) : null}
+
+              <Redirect to={'/'} />
+            </Switch>
           )}
         </Container>
-        <Footer />
-      </div>
+      </Router>
     );
   }
 }
