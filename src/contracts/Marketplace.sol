@@ -1,6 +1,7 @@
 pragma solidity >0.5.0;
 
 contract Marketplace {
+  // Setup variables for the contract
   string public name;
   address public marketplace;
   address public seller;
@@ -24,12 +25,13 @@ contract Marketplace {
 
   enum accountType { deployer, seller, authority, buyer, bank }
 
+  // Holds the account type and the address of the account
   struct Account {
     address accountAddress;
     accountType account;
   }
 
-  // TODO find a way for this to take a document - buffer maybe?
+  // Stores information about the Permit application
   struct PermitApplication {
     uint256 id;
     address owner;
@@ -39,6 +41,7 @@ contract Marketplace {
     applicationStatus status;
   }
 
+  // Stores information about the Loan application
   struct LoanApplication {
     uint256 id;
     address owner;
@@ -49,6 +52,7 @@ contract Marketplace {
     applicationStatus status;
   }
 
+  // Event on permit creation
   event PermitCreated(
     uint256 id,
     address owner,
@@ -58,6 +62,7 @@ contract Marketplace {
     applicationStatus status
   );
 
+  // Event on loan creation
   event LoanCreated(
     uint256 id,
     address owner,
@@ -68,13 +73,14 @@ contract Marketplace {
     applicationStatus status
   );
 
+  // Event on updating the status of the permit
   event PermitStatus(uint256 id, applicationStatus status, address authBy);
 
+  // Event on updating the status of the loan
   event LoanStatus(uint256 id, applicationStatus status, address authBy);
 
   constructor() public {
     name = 'SICI Real Estate Marketplace';
-
     // Justins addresses
     marketplace = 0x9197D2fB0F4Aa66173604bdEA2e2655b988bcAff;
     seller = 0x7e14E1b59aF858C2E366B1d902aBBB743275F694;
@@ -89,6 +95,13 @@ contract Marketplace {
     // bank = 0x5c5857f8cEB15DA1DF8d0217EcA61c8B19db501E;
   }
 
+  /**
+   * Creates a permit
+   * @param _propertyAddress Address of the property
+   * @param _document The blueprint document
+   * @param _licenceNumber The license number of permits applicant's 
+   * @param _status status that is being applied to the permit
+   */
   function createPermit(
     string memory _propertyAddress,
     string memory _document,
@@ -105,6 +118,7 @@ contract Marketplace {
     require(msg.sender == seller);
 
     permitCount++;
+    // Create a new permit object
     permits[permitCount] = PermitApplication(
       permitCount,
       msg.sender,
@@ -113,7 +127,7 @@ contract Marketplace {
       _licenceNumber,
       _status
     );
-
+    // Trigger the permit created event
     emit PermitCreated(
       permitCount,
       msg.sender,
@@ -134,12 +148,11 @@ contract Marketplace {
     PermitApplication memory _permit = permits[_id];
     // validate permit exists
     require(_permit.id > 0 && _permit.id <= permitCount);
-    // validate that the status is not the same - NOT SURE THIS WORKS CORRECTLY
+    // validate that the status is not the same
     require(_status != _permit.status);
     // validate that it is not being updated back to applied
     require(_status != applicationStatus.applied);
 
-    // TODO find better implementation of auth checking - look into proof of authority if we can
     // seller can not update their own permit
     require(_permit.owner != msg.sender);
     // only be updated by an authority
@@ -152,6 +165,14 @@ contract Marketplace {
     emit PermitStatus(_id, _permit.status, msg.sender);
   }
 
+  /**
+   * Creates a permit
+   * @param _fullName Full name of the loan applicant
+   * @param _annualIncome Annual Income of the loan applicant
+   * @param _propertyAddress Address of the property
+   * @param _loanAmount Loan amount requested by the applicant
+   * @param _status status that is being applied to the Loan
+   */
   function createLoan(
     string memory _fullName,
     uint256 _annualIncome,
@@ -167,10 +188,11 @@ contract Marketplace {
     require(_loanAmount > 0);
     // status of a new application must be applied ONLY
     require(_status == applicationStatus.applied);
-    // only be created by a buyer TODO find better implementation of this
+    // only be created by a buyer
     require(msg.sender == buyer);
 
     loanCount++;
+    // Create a new loan application object
     loans[loanCount] = LoanApplication(
       loanCount,
       msg.sender,
@@ -180,7 +202,7 @@ contract Marketplace {
       _loanAmount,
       _status
     );
-
+    // Call the loan created event
     emit LoanCreated(
       permitCount,
       msg.sender,
@@ -192,12 +214,20 @@ contract Marketplace {
     );
   }
 
+  /**
+   * Changes the loan's status
+   * @param _id loan ID
+   * @param _status status that is being applied to the loan
+   */
   function updateLoan(uint256 _id, applicationStatus _status) public {
     LoanApplication memory _loan = loans[_id];
+    // validate loan exists
     require(_loan.id > 0 && _loan.id <= loanCount);
+    // validate that the status is not the same
     require(_status != _loan.status);
     require(_status != applicationStatus.applied);
     require(_loan.owner != msg.sender);
+    // only be updated by an authority
     require(msg.sender == bank);
 
     _loan.status = _status;
