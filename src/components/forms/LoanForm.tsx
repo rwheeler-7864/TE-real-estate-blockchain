@@ -18,31 +18,19 @@ export interface Props {
 }
 
 export default function LoanForm(props: Props) {
-  const [permitCount, setPermitCount] = useState(0);
-
-  useEffect(() => {
-    setPermitCount(props.permits.length);
-    console.log(props.permits);
-    console.log(permitCount);
-  }, []);
-
   /**
    * If there are permits that are valid, display their names in the select field
    * @returns options with property addresses OR no properties available
-   * TODO this is buggy - sometimes shows properties not available while they exist
    */
   function renderPermitOptions() {
-    if (permitsExist()) {
+    
+    if (props.permits) {
       return Object.values(props.permits).map((permit) => {
         return <option>{permit.propertyAddress}</option>;
       });
     } else {
       return <option disabled={true}>No available properties</option>;
     }
-  }
-
-  function permitsExist() {
-    return permitCount > 0;
   }
 
   return (
@@ -154,7 +142,7 @@ export default function LoanForm(props: Props) {
             </Form.Group>
           </Form.Row>
 
-          <Button disabled={!permitsExist()} type='submit'>
+          <Button disabled={!props.permits} type='submit'>
             Submit Loan Application
           </Button>
         </Form>

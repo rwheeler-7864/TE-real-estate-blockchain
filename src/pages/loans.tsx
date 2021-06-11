@@ -49,7 +49,7 @@ export default class LoanPage extends Component<Props, State> {
     /**
      * renders the application form
      */
-    // console.log(this.props.permits);
+    // console.log('render in loans.tsx', this.props.permits);
 
     const loanApplicationForm = (
       <FormCard

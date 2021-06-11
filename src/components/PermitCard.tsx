@@ -22,7 +22,7 @@ export default class PermitCard extends Component<Props, State> {
   render() {
     const { permit } = this.props;
     return (
-      <Card>
+      <Card className='permit-card'>
         <Card.Body>
           <Card.Title>{permit.propertyAddress}</Card.Title>
           <Card.Text>

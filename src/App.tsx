@@ -37,11 +37,6 @@ interface State {
   marketplaceAddress: string;
 }
 
-interface PrivateRouteProps extends RouteProps {
-  component: any;
-  isAuthority: boolean;
-  isBank: boolean;
-}
 
 // ignoring types - TODO fix this later
 declare let window: any;
