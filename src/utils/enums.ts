@@ -5,6 +5,7 @@ export enum applicationStatus {
   purchased = 3,
 }
 
+// TODO think we can just have Create and Update
 export enum requestType {
   permitCreate = 0,
   permitUpdate = 1,

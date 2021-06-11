@@ -1,11 +1,8 @@
-import { FormikValues } from 'formik';
 import React, { Component } from 'react';
-import { Jumbotron, Table } from 'react-bootstrap';
-import { Authority, Buyer, Seller } from 'utils/addresses';
+import { applicationStatus, requestType } from 'utils/enums';
+import { Button, Jumbotron, Table } from 'react-bootstrap';
+import { Authority, Bank, Seller } from 'utils/addresses';
 import { Loan } from 'utils/types';
-import FormCard from '../components/FormCard';
-import LoanForm from '../components/forms/LoanForm';
-import { applicationStatus, requestType } from '../utils/enums';
 
 interface Props {
   loans: Loan[];
@@ -13,35 +10,52 @@ interface Props {
   cb: (requestType: requestType, data: any) => void;
 }
 
-interface State {
-  formValues: FormikValues;
-}
+interface State {}
 
-export default class LoanPage extends Component<Props, State> {
+export default class BankPage extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
-    this.state = {
-      formValues: {},
-    };
+    this.state = {};
   }
 
   getStatus(index: number): string {
     return applicationStatus[index];
   }
 
-  formSubmit(data: FormikValues) {
-    this.props.cb(requestType.loanCreate, data);
+  updateLoan(id: number, status: applicationStatus) {
+    const data: any = {
+      id: id,
+      status: status,
+    };
+    this.props.cb(requestType.loanUpdate, data);
   }
 
   render() {
     const { user } = this.props;
 
-    const loanApplicationForm = (
-      <FormCard
-        title={'Loan Application'}
-        form={<LoanForm cb={(data: FormikValues) => this.formSubmit(data)} />}
-      />
-    );
+    const actionButtons = (permit: any) => {
+      // TODO fix conditional rendering here - not rerendering when changing accounts
+      if (user === Bank) {
+        return (
+          <div>
+            <Button
+              onClick={() =>
+                this.updateLoan(parseInt(permit.id), applicationStatus.approved)
+              }
+            >
+              Approve
+            </Button>
+            <Button
+              onClick={() =>
+                this.updateLoan(parseInt(permit.id), applicationStatus.denied)
+              }
+            >
+              Deny
+            </Button>
+          </div>
+        );
+      }
+    };
 
     const loanTable = (
       <Table>
@@ -78,19 +92,13 @@ export default class LoanPage extends Component<Props, State> {
     return (
       <div>
         <Jumbotron>
-          <h1>Looking to buy?</h1>
-          <p>
-            You've come to the right place. Apply for a loan with J&amp;S Bank.
-          </p>
-          <p>Sign in as a buyer and apply below!</p>
+          <h1>Bank Portal</h1>
+          <p>Approve or deny buyers loan applications below</p>
         </Jumbotron>
-        {user === Buyer ? (
-          <div>
-            {loanApplicationForm}
-            {loanTable}
-          </div>
+        {user === Bank ? (
+          <div>{loanTable}</div>
         ) : (
-          'To apply for a loan, please sign in as a buyer'
+          'Unauthorised user - please inform admin of this issue.'
         )}
       </div>
     );
