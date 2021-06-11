@@ -1,7 +1,7 @@
 # Security in Computing and IT
 ## Assignment 2 Blockchain
 
-Created using Ethereum, Solidity and React. By Justin Naismith and Siddhesh Kale.
+Created using Ethereum, Solidity and React. By Justin Naismith (s3605206) and Siddhesh Kale (s3854666).
 
 Based on tutorial from [Dapp University.](https://youtu.be/VH9Q2lf2mNo)
 
